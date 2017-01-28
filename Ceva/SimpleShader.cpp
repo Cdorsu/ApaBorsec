@@ -153,7 +153,7 @@ void CSimpleShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 void CSimpleShader::OutputShaderError( ID3D10Blob * Error )
 {
 	std::ofstream ofs( "ShaderError.txt" );
-	UINT Size = Error->GetBufferSize();
+	UINT Size = (UINT)Error->GetBufferSize();
 	char *error = (char*)Error->GetBufferPointer();
 	for (UINT i = 0; i < Size; ++i)
 		ofs << error[i];

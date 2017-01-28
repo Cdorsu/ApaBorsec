@@ -15,7 +15,7 @@ bool CSentence::Initialize( ID3D11Device * device, char * sentence, int iScreenW
 	HRESULT hr;
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };
-	IndexCount = strlen( sentence ) * 6;
+	IndexCount = (UINT)strlen( sentence ) * 6;
 	std::vector<DWORD> indices(IndexCount);
 	for (UINT i = 0; i < IndexCount; ++i)
 		indices[i] = i;
@@ -46,7 +46,7 @@ bool CSentence::Update( ID3D11Device * device, char * sentence )
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };
 	Sentence = sentence;
-	IndexCount = strlen( sentence ) * 6;
+	IndexCount = (UINT)strlen( sentence ) * 6;
 	std::vector<DWORD> indices( IndexCount );
 	for (UINT i = 0; i < IndexCount; ++i)
 		indices[i] = i;

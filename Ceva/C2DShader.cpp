@@ -120,9 +120,9 @@ void C2DShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount, ID3
 void C2DShader::OutputShaderError( ID3D10Blob * Error )
 {
 	std::ofstream ofs( "ShaderError.txt" );
-	UINT Size = Error->GetBufferSize();
+	size_t Size = Error->GetBufferSize();
 	char *error = (char*)Error->GetBufferPointer();
-	for (UINT i = 0; i < Size; ++i)
+	for (size_t i = 0; i < Size; ++i)
 		ofs << error[i];
 	ofs.close();
 }
