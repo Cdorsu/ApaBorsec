@@ -1,7 +1,7 @@
 #include "D3DClass.h"
 
 
-common::Color D3DClass::BackgroundColor = common::Color( 0.1f, 0.1f, 0.1f, 1.0f );
+common::Color D3DClass::BackgroundColor = common::Color( 0.5f, 0.5f, 0.5f, 1.0f );
 
 
 D3DClass::D3DClass()
@@ -72,8 +72,10 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD;
 	SwapChainDesc.Windowed = TRUE;
 
+	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+
 	hr = D3D11CreateDeviceAndSwapChain( NULL, D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, NULL, NULL,
-		NULL, NULL, D3D11_SDK_VERSION, &SwapChainDesc, &m_SwapChain, &m_d3d11Device, NULL, &m_d3d11DeviceContext );
+		&featureLevel, 1, D3D11_SDK_VERSION, &SwapChainDesc, &m_SwapChain, &m_d3d11Device, NULL, &m_d3d11DeviceContext );
 	if (FAILED( hr ))
 		return false;
 
