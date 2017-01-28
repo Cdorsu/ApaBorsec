@@ -7,6 +7,7 @@
 #include <d3d11.h>
 #include <windows.h>
 
+// Propozitie smechera
 class CSentence
 {
 	ID3D11Buffer* VertexBuffer;
