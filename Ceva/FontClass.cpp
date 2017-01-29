@@ -52,7 +52,7 @@ void FontClass::BuildVertexArray( void* vertices, const char* Sentence, float Dr
 {
 	float StartX = DrawX;
 	SVertex *verticesPtr = (SVertex*)(vertices);
-	int length = strlen( Sentence );
+	int length = (int)strlen( Sentence );
 	int caracter, index = 0;
 	/*FontClass::SVertex Avertices[] =
 	{

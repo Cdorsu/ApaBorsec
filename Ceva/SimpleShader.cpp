@@ -87,7 +87,11 @@ bool CSimpleShader::Initialize( ID3D11Device * device )
 	hr = device->CreateBuffer( &buffDesc, NULL, &ConstantBuffer );
 	if (FAILED( hr ))
 		return false;
+	//buffDesc.ByteWidth = sizeof (SLight); /// For some God damn reason, it doesn't work on laptop
+	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;
 	buffDesc.ByteWidth = sizeof( SLight );
+	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+	buffDesc.CPUAccessFlags = 0;
 	hr = device->CreateBuffer( &buffDesc, NULL, &LightBuffer );
 	if (FAILED( hr ))
 		return false;
@@ -133,7 +137,7 @@ void CSimpleShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	((SConstantBuffer*)MappedResource.pData)->CamPos = CameraPos;
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
-	hr = context->Map( LightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	/*hr = context->Map( LightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if (FAILED( hr ))
 		return;
 	((SLight*)MappedResource.pData)->SpecularPower = SpecularPower;
@@ -141,7 +145,14 @@ void CSimpleShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	((SLight*)MappedResource.pData)->LightDir = LightDir;
 	((SLight*)MappedResource.pData)->AmbientColor = AmbientColor;
 	((SLight*)MappedResource.pData)->DiffuseColor = DiffuseColor;
-	context->Unmap( ConstantBuffer, 0 );
+	context->Unmap( ConstantBuffer, 0 );*/ /// FOr some God damn reason, map/unmap doesn't work on laptop
+	SLight lumina;
+	lumina.AmbientColor = AmbientColor;
+	lumina.DiffuseColor = DiffuseColor;
+	lumina.LightDir = LightDir;
+	lumina.SpecularColor = SpecularColor;
+	lumina.SpecularPower = SpecularPower;
+	context->UpdateSubresource( LightBuffer, 0, NULL, &lumina, 0, 0 );
 	context->PSSetConstantBuffers( 0, 1, &LightBuffer );
 	context->PSSetSamplers( 0, 1, &Sampler );
 	context->PSSetShaderResources( 0, 1, &Texture );
@@ -153,7 +164,7 @@ void CSimpleShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 void CSimpleShader::OutputShaderError( ID3D10Blob * Error )
 {
 	std::ofstream ofs( "ShaderError.txt" );
-	UINT Size = Error->GetBufferSize();
+	UINT Size = (UINT)Error->GetBufferSize();
 	char *error = (char*)Error->GetBufferPointer();
 	for (UINT i = 0; i < Size; ++i)
 		ofs << error[i];
