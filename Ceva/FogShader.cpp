@@ -7,11 +7,24 @@ CFogShader::CFogShader()
 	ZeroMemory(this, sizeof(CFogShader));
 }
 
-bool CFogShader::Initialize(ID3D11Device * device)
+bool CFogShader::Initialize(ID3D11Device * device, CFogShader::EFogType FogType)
 {
-	ID3D10Blob *ShaderBlob, *ErrorBlob;
-	HRESULT hr;
-	hr = D3DX11CompileFromFile(L"VertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
+	ID3D10Blob *ShaderBlob = nullptr, *ErrorBlob = nullptr;
+	HRESULT hr = S_OK;
+	switch (FogType)
+	{
+	case CFogShader::LinearFog:
+		hr = D3DX11CompileFromFile(L"LinearFogVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
+		break;
+	case CFogShader::ExponentialFog:
+		hr = D3DX11CompileFromFile(L"ExponentialFogVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
+		break;
+	case CFogShader::ExponentialFog2:
+		hr = D3DX11CompileFromFile(L"ExponentialFogVertexShader2.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
+		break;
+	default:
+		break;
+	}
 	if (FAILED(hr))
 	{
 		if (ShaderBlob)
@@ -65,7 +78,7 @@ bool CFogShader::Initialize(ID3D11Device * device)
 	if (FAILED(hr))
 		return false;
 	SafeRelease(ShaderBlob);
-	hr = D3DX11CompileFromFile(L"PixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
+	hr = D3DX11CompileFromFile(L"FogPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
 	if (FAILED(hr))
 	{
 		if (ShaderBlob)
@@ -95,6 +108,14 @@ bool CFogShader::Initialize(ID3D11Device * device)
 	hr = device->CreateBuffer(&buffDesc, NULL, &LightBuffer);
 	if (FAILED(hr))
 		return false;
+	buffDesc.ByteWidth = sizeof(SVSFog);
+	hr = device->CreateBuffer(&buffDesc, NULL, &FogVSBuffer);
+	if (FAILED(hr))
+		return false;
+	buffDesc.ByteWidth = sizeof(SPSFog);
+	hr = device->CreateBuffer(&buffDesc, NULL, &FogPSBuffer);
+	if (FAILED(hr))
+		return false;
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
@@ -117,13 +138,14 @@ bool CFogShader::Initialize(ID3D11Device * device)
 void CFogShader::Render(ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * BumpMap, ID3D11ShaderResourceView * Specular,
 	DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-	DirectX::XMFLOAT3 CameraPos,
-	common::Color AmbientColor, common::Color DiffuseColor, common::Color SpecularColor,
-	DirectX::XMFLOAT3 LightDir, float SpecularPower)
+	DirectX::XMFLOAT3 CameraPos, CLight* lightInfo, float fogStart, float fogEnd, common::Color fogColor)
 {
 	using namespace DirectX;
 	static HRESULT hr;
 	static XMMATRIX WVP;
+	static SLight light;
+	static SVSFog VSfog;
+	static SPSFog PSfog;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	context->IASetInputLayout(InputLayout);
 	context->VSSetShader(VertexShader, nullptr, 0);
@@ -137,6 +159,10 @@ void CFogShader::Render(ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	((SConstantBuffer*)MappedResource.pData)->CamPos = CameraPos;
 	context->Unmap(ConstantBuffer, 0);
 	context->VSSetConstantBuffers(0, 1, &ConstantBuffer);
+	VSfog.fogEnd = fogEnd;
+	VSfog.fogStart = fogStart;
+	context->UpdateSubresource(FogVSBuffer, 0, NULL, &VSfog, 0, 0);
+	context->VSSetConstantBuffers(1, 1, &FogVSBuffer);
 	/*hr = context->Map( LightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if (FAILED( hr ))
 	return;
@@ -145,15 +171,19 @@ void CFogShader::Render(ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	((SLight*)MappedResource.pData)->LightDir = LightDir;
 	((SLight*)MappedResource.pData)->AmbientColor = AmbientColor;
 	((SLight*)MappedResource.pData)->DiffuseColor = DiffuseColor;
-	context->Unmap( ConstantBuffer, 0 );*/ /// FOr some God damn reason, map/unmap doesn't work on laptop
-	SLight lumina;
-	lumina.AmbientColor = AmbientColor;
-	lumina.DiffuseColor = DiffuseColor;
-	lumina.LightDir = LightDir;
-	lumina.SpecularColor = SpecularColor;
-	lumina.SpecularPower = SpecularPower;
-	context->UpdateSubresource(LightBuffer, 0, NULL, &lumina, 0, 0);
+	context->Unmap( ConstantBuffer, 0 );*/ /// For some God damn reason, map/unmap doesn't work on laptop
+	light.AmbientColor = lightInfo->GetAmbientColor();
+	light.DiffuseColor = lightInfo->GetDiffuseColor();
+	light.LightDir = lightInfo->GetDirection();
+	light.SpecularColor = lightInfo->GetSpecularColor();
+	light.SpecularPower = lightInfo->GetSpecularPower();
+	context->UpdateSubresource(LightBuffer, 0, NULL, &light, 0, 0);
 	context->PSSetConstantBuffers(0, 1, &LightBuffer);
+
+	PSfog.FogColor = fogColor;
+	context->UpdateSubresource(FogPSBuffer, 0, NULL, &PSfog, 0, 0);
+	context->PSSetConstantBuffers(1, 1, &FogPSBuffer);
+
 	context->PSSetSamplers(0, 1, &Sampler);
 	context->PSSetShaderResources(0, 1, &Texture);
 	context->PSSetShaderResources(1, 1, &BumpMap);
@@ -178,6 +208,8 @@ void CFogShader::Shutdown()
 	SafeRelease(InputLayout);
 	SafeRelease(ConstantBuffer);
 	SafeRelease(LightBuffer);
+	SafeRelease(FogVSBuffer);
+	SafeRelease(FogPSBuffer);
 	SafeRelease(Sampler);
 }
 

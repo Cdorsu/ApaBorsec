@@ -31,6 +31,6 @@ VSOut main( float4 pos : POSITION, float2 Texture : TEXCOORD, float3 Normal : NO
     output.Nor = normalize( output.Nor );
     output.ViewDirection = CamPos.xyz - WorldPos.xyz;
     output.ViewDirection = normalize( output.ViewDirection );
-    output.fogFactor = ( fogEnd - CamPos.z ) / ( fogEnd - fogStart );
+    output.fogFactor = saturate( ( fogEnd - abs( CamPos.z ) ) / ( fogEnd - fogStart ) );
     return output;
 }

@@ -18,7 +18,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!m_Triangle->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
 		return false;
 	m_Model = new CModel();
-	if (!m_Model->Initialize( m_d3d->GetDevice(), L"sphere.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
+	if (!m_Model->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
 		return false;
 	m_Cursor = new BitmapClass();
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
@@ -28,6 +28,15 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		return false;
 	m_3DSimpleShader = new CSimpleShader();
 	if (!m_3DSimpleShader->Initialize( m_d3d->GetDevice() ))
+		return false;
+	m_LinearFogShader = new CFogShader();
+	if (!m_LinearFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::LinearFog))
+		return false;
+	m_ExponentialFogShader = new CFogShader();
+	if (!m_ExponentialFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::ExponentialFog))
+		return false;
+	m_ExponentialFogShader2 = new CFogShader();
+	if (!m_ExponentialFogShader2->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::ExponentialFog2))
 		return false;
 	m_2DShader = new C2DShader();
 	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
@@ -126,11 +135,10 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	if (m_Camera->isCubeinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
 	{
 		m_Triangle->Render( m_d3d->GetImmediateContext() );
-		m_3DSimpleShader->Render( m_d3d->GetImmediateContext(), m_Triangle->GetIndexCount(),
+		m_ExponentialFogShader2->Render(m_d3d->GetImmediateContext(), m_Triangle->GetIndexCount(),
 			m_Triangle->GetTexture(), m_Triangle->GetBumpMap(), m_Triangle->GetSpecularMap(),
 			m_Triangle->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), m_Camera->GetCameraPosition(),
-			Light->GetAmbientColor(), Light->GetDiffuseColor(), Light->GetSpecularColor(), Light->GetDirection(),
-			Light->GetSpecularPower() );
+			Light, 0.0f, 100.0f, common::Color(0.5f, 0.5f, 0.5f, 1.0f));
 		m_RenderCount++;
 	}
 
@@ -139,11 +147,10 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	if (m_Camera->isSphereinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
 	{
 		m_Model->Render( m_d3d->GetImmediateContext() );
-		m_3DSimpleShader->Render( m_d3d->GetImmediateContext(), m_Model->GetIndexCount(),
+		m_LinearFogShader->Render(m_d3d->GetImmediateContext(), m_Model->GetIndexCount(),
 			m_Model->GetTexture(), m_Model->GetBumpMap(), m_Model->GetSpecularMap(),
 			m_Model->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), m_Camera->GetCameraPosition(),
-			Light->GetAmbientColor(), Light->GetDiffuseColor(), Light->GetSpecularColor(), Light->GetDirection(),
-			Light->GetSpecularPower() );
+			Light, 0.0f, 100.0f, common::Color(0.5f, 0.5f, 0.5f, 1.0f));
 		m_RenderCount++;
 	}
 
@@ -231,6 +238,15 @@ void CGraphics::Shutdown()
 
 	m_3DSimpleShader->Shutdown();
 	delete m_3DSimpleShader;
+
+	m_LinearFogShader->Shutdown();
+	delete m_LinearFogShader;
+
+	m_ExponentialFogShader->Shutdown();
+	delete m_ExponentialFogShader;
+
+	m_ExponentialFogShader2->Shutdown();
+	delete m_ExponentialFogShader2;
 
 	delete Light;
 

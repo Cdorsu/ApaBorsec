@@ -139,10 +139,16 @@
     <FxCompile Include="2DPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
-    <FxCompile Include="FogVertexShader.hlsl">
+    <FxCompile Include="FogPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
-    <FxCompile Include="FogPixelShader.hlsl">
+    <FxCompile Include="LinearFogVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="ExponentialFogVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="ExponentialFogVertexShader2.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

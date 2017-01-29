@@ -160,10 +160,10 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpText
 		vertices[indices[(i * 3)]].Binormal = Binormal;
 		vertices[indices[(i * 3) + 1]].Binormal = Binormal;
 		vertices[indices[(i * 3) + 2]].Binormal = Binormal;
-		math::CalculateNormal( Tangent, Binormal, Normal );
+		/*math::CalculateNormal( Tangent, Binormal, Normal );
 		vertices[indices[(i * 3)]].Normal = Normal;
 		vertices[indices[(i * 3) + 1]].Normal = Normal;
-		vertices[indices[(i * 3) + 2]].Normal = Normal;
+		vertices[indices[(i * 3) + 2]].Normal = Normal;*/
 	}
 
 #pragma endregion
