@@ -125,6 +125,7 @@
     <ClCompile Include="C2DShader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="commonmath.cpp" />
+    <ClCompile Include="FogShader.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="C2DShader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="commonmath.h" />
+    <ClInclude Include="FogShader.h" />
     <ClInclude Include="FontClass.h" />
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Input.h" />

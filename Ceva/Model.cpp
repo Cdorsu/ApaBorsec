@@ -149,21 +149,21 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpText
 	ifs.close();
 #pragma region Calculate vectors
 
-	for (UINT i = 0; i < indices.size(); i += 3)
+	for (UINT i = 0; i < indices.size() / 3; ++i)
 	{
 		math::XMFLOAT3 Tangent, Binormal, Normal;
-		math::CalculateTangentandBinormal( vertices[indices[i]].Position, vertices[indices[i + 1]].Position, vertices[indices[i + 2]].Position,
-			vertices[indices[i]].Texture, vertices[indices[i + 1]].Texture, vertices[indices[i + 2]].Texture, Tangent, Binormal );
-		vertices[indices[i]].Tangent = Tangent;
-		vertices[indices[i + 1]].Tangent = Tangent;
-		vertices[indices[i + 2]].Tangent = Tangent;
-		vertices[indices[i]].Binormal = Binormal;
-		vertices[indices[i + 1]].Binormal = Binormal;
-		vertices[indices[i + 2]].Binormal = Binormal;
+		math::CalculateTangentandBinormal( vertices[indices[(i * 3)]].Position, vertices[indices[(i * 3) + 1]].Position, vertices[indices[(i * 3) + 2]].Position,
+			vertices[indices[(i * 3)]].Texture, vertices[indices[(i * 3) + 1]].Texture, vertices[indices[(i * 3) + 2]].Texture, Tangent, Binormal );
+		vertices[indices[(i * 3)]].Tangent = Tangent;
+		vertices[indices[(i * 3) + 1]].Tangent = Tangent;
+		vertices[indices[(i * 3) + 2]].Tangent = Tangent;
+		vertices[indices[(i * 3)]].Binormal = Binormal;
+		vertices[indices[(i * 3) + 1]].Binormal = Binormal;
+		vertices[indices[(i * 3) + 2]].Binormal = Binormal;
 		math::CalculateNormal( Tangent, Binormal, Normal );
-		vertices[indices[i]].Normal = Normal;
-		vertices[indices[i + 1]].Normal = Normal;
-		vertices[indices[i + 2]].Normal = Normal;
+		vertices[indices[(i * 3)]].Normal = Normal;
+		vertices[indices[(i * 3) + 1]].Normal = Normal;
+		vertices[indices[(i * 3) + 2]].Normal = Normal;
 	}
 
 #pragma endregion
@@ -178,8 +178,10 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpText
 	if (FAILED( hr ))
 		return false;
 	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
-	buffDesc.ByteWidth = sizeof( indices ) * IndexCount;
+	buffDesc.ByteWidth = sizeof( DWORD ) * IndexCount;
 	buffData.pSysMem = &indices[0];
+	buffData.SysMemPitch = 0;
+	buffData.SysMemSlicePitch = 0;
 	hr = device->CreateBuffer( &buffDesc, &buffData, &IndexBuffer );
 	if (FAILED( hr ))
 		return false;

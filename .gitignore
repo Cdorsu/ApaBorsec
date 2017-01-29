@@ -210,5 +210,5 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-/Ceva.VC.db
-/Ceva.VC.VC.opendb
+*.VC.opendb
+*.VC.db
