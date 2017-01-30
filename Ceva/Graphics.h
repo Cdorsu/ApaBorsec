@@ -21,7 +21,8 @@ class CGraphics sealed
 	CModel *m_Triangle;
 	CModel *m_Model;
 	BitmapClass *m_Cursor;
-	CSimpleShader *m_3DSimpleShader;
+	CSimpleShader *m_NoPlaneClippingShader;
+	CSimpleShader *m_PlaneClippingShader;
 	C2DShader *m_2DShader;
 	CFogShader *m_LinearFogShader;
 	CFogShader *m_ExponentialFogShader;
@@ -35,6 +36,7 @@ class CGraphics sealed
 	CSentence *m_Cheat;
 	BitmapClass *m_RenderTexture;
 	CRenderTexture *m_TextureRenderer;
+	DirectX::XMFLOAT4 m_ClippingPlane;
 	UINT m_MouseX;
 	UINT m_MouseY;
 	UINT m_WindowWidth;

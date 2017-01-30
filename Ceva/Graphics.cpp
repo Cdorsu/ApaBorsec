@@ -26,8 +26,11 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_RenderTexture = new BitmapClass();
 	if (!m_RenderTexture->Initialize( m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, WindowWidth / 10, WindowHeight / 10 ))
 		return false;
-	m_3DSimpleShader = new CSimpleShader();
-	if (!m_3DSimpleShader->Initialize( m_d3d->GetDevice() ))
+	m_NoPlaneClippingShader = new CSimpleShader();
+	if (!m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice() ))
+		return false;
+	m_PlaneClippingShader = new CSimpleShader( );
+	if ( !m_PlaneClippingShader->Initialize( m_d3d->GetDevice( ), CSimpleShader::EType::PlaneClipping ) )
 		return false;
 	m_LinearFogShader = new CFogShader();
 	if (!m_LinearFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::LinearFog))
@@ -67,6 +70,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_TextureRenderer = new CRenderTexture();
 	if (!m_TextureRenderer->Initialize( m_d3d->GetDevice(), WindowWidth, WindowHeight ))
 		return false;
+	m_ClippingPlane = DirectX::XMFLOAT4( 0.0f, 1.0f, 0.0f, 0.0f );
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.1f, 0.1f, 0.1f, 1.0f ) );
@@ -78,6 +82,10 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
+	static float delta = 1.0f;
+	if ( m_ClippingPlane.w >= 1.1f || m_ClippingPlane.w <= -1.1f )
+		delta *= -1;
+	m_ClippingPlane.w += 0.5f * fFrameTime * delta;
 	m_MouseX = MouseX;
 	m_MouseY = MouseY;
 	static float Rotation = 0.0f;
@@ -135,10 +143,10 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	if (m_Camera->isCubeinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
 	{
 		m_Triangle->Render( m_d3d->GetImmediateContext() );
-		m_ExponentialFogShader2->Render(m_d3d->GetImmediateContext(), m_Triangle->GetIndexCount(),
-			m_Triangle->GetTexture(), m_Triangle->GetBumpMap(), m_Triangle->GetSpecularMap(),
-			m_Triangle->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), m_Camera->GetCameraPosition(),
-			Light, 0.0f, 100.0f, common::Color(0.5f, 0.5f, 0.5f, 1.0f));
+		m_PlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
+			m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
+			m_Triangle->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
+			Light, m_ClippingPlane );
 		m_RenderCount++;
 	}
 
@@ -147,10 +155,10 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	if (m_Camera->isSphereinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
 	{
 		m_Model->Render( m_d3d->GetImmediateContext() );
-		m_LinearFogShader->Render(m_d3d->GetImmediateContext(), m_Model->GetIndexCount(),
-			m_Model->GetTexture(), m_Model->GetBumpMap(), m_Model->GetSpecularMap(),
-			m_Model->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), m_Camera->GetCameraPosition(),
-			Light, 0.0f, 100.0f, common::Color(0.5f, 0.5f, 0.5f, 1.0f));
+		m_PlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
+			m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
+			m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
+			Light, m_ClippingPlane );
 		m_RenderCount++;
 	}
 
@@ -158,18 +166,16 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext(), m_d3d->GetDepthStencilView(), common::HexToRGB( 0x000000 ) );
 
 	m_Triangle->Render( m_d3d->GetImmediateContext() );
-	m_3DSimpleShader->Render( m_d3d->GetImmediateContext(), m_Triangle->GetIndexCount(),
+	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext(), m_Triangle->GetIndexCount(),
 		m_Triangle->GetTexture(), m_Triangle->GetBumpMap(), m_Triangle->GetSpecularMap(),
 		m_Triangle->GetWorld(), m_Up->GetView(), m_Up->GetProjection(), m_Up->GetCameraPosition(),
-		Light->GetAmbientColor(), Light->GetDiffuseColor(), Light->GetSpecularColor(), Light->GetDirection(),
-		Light->GetSpecularPower() );
+		Light );
 
 	m_Model->Render( m_d3d->GetImmediateContext() );
-	m_3DSimpleShader->Render( m_d3d->GetImmediateContext(), m_Model->GetIndexCount(),
+	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext(), m_Model->GetIndexCount(),
 		m_Model->GetTexture(), m_Model->GetBumpMap(), m_Model->GetSpecularMap(),
 		m_Model->GetWorld(), m_Up->GetView(), m_Up->GetProjection(), m_Up->GetCameraPosition(),
-		Light->GetAmbientColor(), Light->GetDiffuseColor(), Light->GetSpecularColor(), Light->GetDirection(),
-		Light->GetSpecularPower() );
+		Light );
 
 	m_d3d->EnableBackBuffer();
 
@@ -236,8 +242,11 @@ void CGraphics::Shutdown()
 	m_2DShader->Shutdown();
 	delete m_2DShader;
 
-	m_3DSimpleShader->Shutdown();
-	delete m_3DSimpleShader;
+	m_NoPlaneClippingShader->Shutdown();
+	delete m_NoPlaneClippingShader;
+
+	m_PlaneClippingShader->Shutdown( );
+	delete m_PlaneClippingShader;
 
 	m_LinearFogShader->Shutdown();
 	delete m_LinearFogShader;

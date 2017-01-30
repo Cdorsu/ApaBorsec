@@ -151,5 +151,8 @@
     <FxCompile Include="ExponentialFogVertexShader2.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
+    <FxCompile Include="PlaneClippingVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

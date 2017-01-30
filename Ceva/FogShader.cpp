@@ -13,13 +13,13 @@ bool CFogShader::Initialize(ID3D11Device * device, CFogShader::EFogType FogType)
 	HRESULT hr = S_OK;
 	switch (FogType)
 	{
-	case CFogShader::LinearFog:
+	case CFogShader::EFogType::LinearFog:
 		hr = D3DX11CompileFromFile(L"LinearFogVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
 		break;
-	case CFogShader::ExponentialFog:
+	case CFogShader::EFogType::ExponentialFog:
 		hr = D3DX11CompileFromFile(L"ExponentialFogVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
 		break;
-	case CFogShader::ExponentialFog2:
+	case CFogShader::EFogType::ExponentialFog2:
 		hr = D3DX11CompileFromFile(L"ExponentialFogVertexShader2.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
 		break;
 	default:

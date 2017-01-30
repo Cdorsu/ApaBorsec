@@ -42,7 +42,7 @@ private:
 		float pad2;
 	};
 public:
-	enum EFogType
+	enum class EFogType
 	{
 		LinearFog,
 		ExponentialFog,

@@ -35,8 +35,6 @@ float4 main( PSIn input ) : SV_TARGET
     float4 SpecularIntensity = ObjTexture[2].Sample( Sampler, input.Tex );
     BumpColor = ( BumpColor * 2.0f ) - 1.0f;
     float3 LightDirection = -LightDir;
-    TextureColor = input.fogFactor * TextureColor + ( 1.0f - input.fogFactor ) * fogColor;
-    //TextureColor = lerp( TextureColor, fogColor, input.fogFactor ); // In special cases, this looks better
 
     float3 BumpNormal = ( input.Tangent * BumpColor.x ) + ( input.Binormal * BumpColor.y ) + ( input.Nor * BumpColor.z );
     BumpNormal = normalize( BumpNormal );
@@ -55,9 +53,12 @@ float4 main( PSIn input ) : SV_TARGET
         Specular *= SpecularIntensity;
         Specular *= SpecularColor;
         saturate( Specular );
+        // Specular *= 0.2f; /// If specular is too high, use this
     }
     Color = Color * TextureColor;
     Color = saturate( Color + Specular );
+    Color = input.fogFactor * Color + ( 1.0f - input.fogFactor ) * fogColor;
+    //TextureColor = lerp( TextureColor, fogColor, input.fogFactor ); // In special cases, this looks better
     return Color;
 }
 
