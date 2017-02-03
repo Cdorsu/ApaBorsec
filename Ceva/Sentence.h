@@ -9,22 +9,24 @@
 
 class CSentence
 {
+	typedef FontClass::SVertex SVertex;
 	ID3D11Buffer* VertexBuffer;
 	ID3D11Buffer* IndexBuffer;
 	UINT VertexCount;
 	UINT IndexCount;
 	std::string Sentence;
-	UINT PreviousX, PreviousY;
 	UINT ScreenWidth, ScreenHeight;
+	UINT maxLength;
+	float CurrentX, CurrentY;
 public:
 	CSentence();
 	~CSentence();
 private:
 	void RenderBuffers( ID3D11DeviceContext * context );
 public:
-	bool Initialize( ID3D11Device * device, char * sentence, int ScreenWidth, int ScreenHeigth );
-	bool Update( ID3D11Device * device, char* sentence );
-	void Render( ID3D11DeviceContext * context, float x, float y );
+	bool Initialize( ID3D11Device * device, char * sentence, int ScreenWidth, int ScreenHeigth, float x, float y );
+	bool Update( ID3D11DeviceContext * context, char* sentence, float x = -1.0f, float y = -1.0f );
+	void Render( ID3D11DeviceContext * context);
 	void Shutdown();
 public:
 	inline UINT GetVertexCount() { return VertexCount; };

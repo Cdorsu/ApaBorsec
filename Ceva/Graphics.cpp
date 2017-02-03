@@ -56,16 +56,22 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!FontClass::Initialize( m_d3d->GetDevice(), L"font.dds", L"fontdata.txt" ))
 		return false;
 	m_Cheat = new CSentence();
-	if (!m_Cheat->Initialize( m_d3d->GetDevice(), "Cheat message", WindowWidth, WindowHeight ))
+	if ( !m_Cheat->Initialize( m_d3d->GetDevice( ), "Here is a veeeery long string. Here will be wrote possible cheats",
+		WindowWidth, WindowHeight, 1.0f, ( float ) WindowHeight - 17.0f ) )
+		return false;
+	m_CursorX = new CSentence( );
+	if ( !m_CursorX->Initialize( m_d3d->GetDevice( ), "Cursor position X: 00000", WindowWidth, WindowHeight,
+		WindowWidth - 150.0f, WindowHeight - 32.0f ) )
+		return false;
+	m_CursorY = new CSentence( );
+	if ( !m_CursorY->Initialize( m_d3d->GetDevice( ), "Cursor position Y: 00000", WindowWidth, WindowHeight,
+		WindowWidth - 150.0f, WindowHeight - 16.0f ) )
 		return false;
 	m_FPSMessage = new CSentence();
-	if (!m_FPSMessage->Initialize( m_d3d->GetDevice(), "FPSMessage", WindowWidth, WindowHeight ))
+	if ( !m_FPSMessage->Initialize( m_d3d->GetDevice( ), "Frames per second: 000", WindowWidth, WindowHeight, 1.0f, 69.0f ) )
 		return false;
 	m_FrameTimeMessage = new CSentence();
-	if (!m_FrameTimeMessage->Initialize( m_d3d->GetDevice(), "FTMessage", WindowWidth, WindowHeight ))
-		return false;
-	m_CursorPosition = new CSentence();
-	if (!m_CursorPosition->Initialize( m_d3d->GetDevice(), "CursorPositionX\nCursorPositionY", WindowWidth, WindowHeight ))
+	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
 		return false;
 	m_TextureRenderer = new CRenderTexture();
 	if (!m_TextureRenderer->Initialize( m_d3d->GetDevice(), WindowWidth, WindowHeight ))
@@ -83,11 +89,11 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
 	static float delta = 1.0f;
+	static char MousePosition[ 4 ];
+	static int index;
 	if ( m_ClippingPlane.w >= 1.1f || m_ClippingPlane.w <= -1.1f )
 		delta *= -1;
 	m_ClippingPlane.w += 0.5f * fFrameTime * delta;
-	m_MouseX = MouseX;
-	m_MouseY = MouseY;
 	static float Rotation = 0.0f;
 	if (Rotation >= 2 * FLOAT_PI)
 		Rotation = 0.0f;
@@ -101,21 +107,42 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	{
 		char buffer[500] = { 0 };
 		sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
-		m_FPSMessage->Update( m_d3d->GetDevice(), buffer );
+		m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 1.0f );
 		if (strcmp( cheat, "GetRenderCount" ) == 0)
 		{
 			sprintf_s( buffer, "Render count: %d", m_RenderCount );
-			m_FrameTimeMessage->Update( m_d3d->GetDevice(), buffer );
+			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 18.0f );
 		}
 		else
 		{
 			sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
-			m_FrameTimeMessage->Update( m_d3d->GetDevice(), buffer );
+			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 18.0f );
 		}
-		sprintf_s( buffer, "CursorPositionX: %d\nCursorPositionY: %d", MouseX, MouseY );
-		m_CursorPosition->Update( m_d3d->GetDevice(), buffer );
-		sprintf_s( buffer, ":%s:", cheat );
-		m_Cheat->Update( m_d3d->GetDevice(), buffer );
+		if ( strlen( cheat ) > 0 )
+		{
+			sprintf_s( buffer, ":%s:", cheat );
+			m_Cheat->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, ( float ) m_WindowHeight - 17.0f );
+		}
+		index = 0;
+		for ( int i = 0; i < 4; ++i )
+			MousePosition[ i ] = '0';
+		while ( MouseX && index < 4 )
+		{
+			MousePosition[ 3 - index++ ] = MouseX % 10 + '0';
+			MouseX /= 10;
+		}
+		sprintf_s( buffer, "Cursor Position X: %s", MousePosition );
+		m_CursorX->Update( m_d3d->GetImmediateContext( ), buffer, m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
+		for ( int i = 0; i < 4; ++i )
+			MousePosition[ i ] = '0';
+		index = 0;
+		while ( MouseY && index < 4 )
+		{
+			MousePosition[ 3 - index++ ] = MouseY % 10 + '0';
+			MouseY /= 10;
+		}
+		sprintf_s( buffer, "Cursor Position Y: %s", MousePosition );
+		m_CursorY->Update( m_d3d->GetImmediateContext( ), buffer, m_WindowWidth - 150.0f, m_WindowHeight - 16.0f );
 	}
 	else
 	{
@@ -127,10 +154,10 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 void CGraphics::Frame( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * Cheat )
 {
 	Update( RenderMenu, dwFramesPerSecond, fFrameTime, MouseX, MouseY, Cheat );
-	Render( RenderMenu, Cheat );
+	Render( RenderMenu, Cheat, MouseX, MouseY );
 }
 
-void CGraphics::Render( bool RenderMenu, char * Cheat )
+void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY )
 {
 	m_RenderCount = 0;
 	m_d3d->BeginScene();
@@ -143,7 +170,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	if (m_Camera->isCubeinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
 	{
 		m_Triangle->Render( m_d3d->GetImmediateContext() );
-		m_PlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
+		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
 			m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
 			m_Triangle->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
 			Light, m_ClippingPlane );
@@ -155,7 +182,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	if (m_Camera->isSphereinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
 	{
 		m_Model->Render( m_d3d->GetImmediateContext() );
-		m_PlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
+		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
 			m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
 			m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
 			Light, m_ClippingPlane );
@@ -163,7 +190,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	}
 
 	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext(), m_d3d->GetDepthStencilView() );
-	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext(), m_d3d->GetDepthStencilView(), common::HexToRGB( 0x000000 ) );
+	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.5f, 0.5f, 0.5f, 0.5f ) );
 
 	m_Triangle->Render( m_d3d->GetImmediateContext() );
 	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext(), m_Triangle->GetIndexCount(),
@@ -187,26 +214,30 @@ void CGraphics::Render( bool RenderMenu, char * Cheat )
 	{
 
 		m_d3d->EnableAlphaBlending();
-		if (Cheat != "")
+		if ( strlen( Cheat ) > 0 )
 		{
-			m_Cheat->Render( m_d3d->GetImmediateContext(), 1.0f, m_WindowHeight - 17.0f );
+			m_Cheat->Render( m_d3d->GetImmediateContext( ) );
 			m_2DShader->Render( m_d3d->GetImmediateContext(), m_Cheat->GetIndexCount(), FontClass::GetTexture(),
 				DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0xFFFF00 ) );
 		}
 
-		m_FPSMessage->Render( m_d3d->GetImmediateContext(), 1, 1 );
+		m_FPSMessage->Render( m_d3d->GetImmediateContext( ) );
 		m_2DShader->Render( m_d3d->GetImmediateContext(), m_FPSMessage->GetIndexCount(), FontClass::GetTexture(),
 			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0xFFFF00 ) );
 
-		m_FrameTimeMessage->Render( m_d3d->GetImmediateContext(), 1, 20 );
+		m_FrameTimeMessage->Render( m_d3d->GetImmediateContext( ) );
 		m_2DShader->Render( m_d3d->GetImmediateContext(), m_FrameTimeMessage->GetIndexCount(), FontClass::GetTexture(),
 			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0x00FF00 ) );
 
-		m_CursorPosition->Render( m_d3d->GetImmediateContext(), m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
-		m_2DShader->Render( m_d3d->GetImmediateContext(), m_CursorPosition->GetIndexCount(), FontClass::GetTexture(),
-			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0xFF0000 ) );
+		m_CursorX->Render( m_d3d->GetImmediateContext( ) );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_CursorX->GetIndexCount( ), FontClass::GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
 
-		m_Cursor->Render( m_d3d->GetImmediateContext(), m_MouseX, m_MouseY );
+		m_CursorY->Render( m_d3d->GetImmediateContext( ) );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_CursorY->GetIndexCount( ), FontClass::GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+
+		m_Cursor->Render( m_d3d->GetImmediateContext(), MouseX, MouseY );
 		m_2DShader->Render( m_d3d->GetImmediateContext(), m_Cursor->GetIndexCount(), m_Cursor->GetTexture(),
 			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix() );
 		m_d3d->DisableAlphaBlending();
@@ -230,8 +261,11 @@ void CGraphics::Shutdown()
 	m_Cheat->Shutdown();
 	delete m_Cheat;
 
-	m_CursorPosition->Shutdown();
-	delete m_CursorPosition;
+	m_CursorX->Shutdown( );
+	delete m_CursorX;
+
+	m_CursorY->Shutdown( );
+	delete m_CursorY;
 
 	m_FrameTimeMessage->Shutdown();
 	delete m_FrameTimeMessage;

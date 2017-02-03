@@ -7,15 +7,18 @@ CSentence::CSentence()
 	ZeroMemory( this, sizeof( CSentence ) );
 }
 
-bool CSentence::Initialize( ID3D11Device * device, char * sentence, int iScreenWidth, int iScreenHeight )
+bool CSentence::Initialize( ID3D11Device * device, char * sentence, int iScreenWidth, int iScreenHeight, float x, float y )
 {
 	ScreenWidth = iScreenWidth;
 	ScreenHeight = iScreenHeight;
 	Sentence = sentence;
-	HRESULT hr;
+	maxLength = strlen( sentence );
+	x = ( ( float ) ScreenWidth / 2 * -1 ) + x;
+	y = ( ( float ) ScreenHeight / 2 ) - y;
+ 	HRESULT hr;
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };
-	IndexCount = (UINT)strlen( sentence ) * 6;
+	IndexCount = ( UINT ) strlen( sentence ) * 6;
 	std::vector<DWORD> indices(IndexCount);
 	for (UINT i = 0; i < IndexCount; ++i)
 		indices[i] = i;
@@ -36,54 +39,40 @@ bool CSentence::Initialize( ID3D11Device * device, char * sentence, int iScreenW
 	return true;
 }
 
-bool CSentence::Update( ID3D11Device * device, char * sentence )
+bool CSentence::Update( ID3D11DeviceContext * context, char * sentence, float x, float y )
 {
 	if (sentence == Sentence.c_str())
 		return true;
-	PreviousX = -1;
-	PreviousY = -1;
-	HRESULT hr;
-	D3D11_BUFFER_DESC buffDesc = { 0 };
-	D3D11_SUBRESOURCE_DATA buffData = { 0 };
+	if ( x == -1 && y == -1 )
+	{
+		x = CurrentX;
+		y = CurrentY;
+	}
+	else
+	{
+		x = ( ( float ) ScreenWidth / 2 * -1 ) + x;
+		y = ( ( float ) ScreenHeight / 2 ) - y;
+	}
+	size_t length = strlen( sentence );
+	if ( length > maxLength )
+		return false;
 	Sentence = sentence;
-	IndexCount = (UINT)strlen( sentence ) * 6;
-	std::vector<DWORD> indices( IndexCount );
-	for (UINT i = 0; i < IndexCount; ++i)
-		indices[i] = i;
-	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
-	buffDesc.ByteWidth = sizeof( DWORD ) * IndexCount;
-	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
-	buffData.pSysMem = &indices[0];
-	SafeRelease( IndexBuffer );
-	hr = device->CreateBuffer( &buffDesc, &buffData, &IndexBuffer );
-	if (FAILED( hr ))
-		return false;
-	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
-	buffDesc.ByteWidth = sizeof( FontClass::SVertex ) * IndexCount;
-	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
-	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
-	SafeRelease( VertexBuffer );
-	hr = device->CreateBuffer( &buffDesc, NULL, &VertexBuffer );
-	if (FAILED( hr ))
-		return false;
+	if ( length <= maxLength )
+	{
+		IndexCount = length * 6;
+		VertexCount = length * 6;
+	}
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	context->Map( VertexBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped );
+	
+	FontClass::BuildVertexArray( ( void* ) mapped.pData, sentence, x, y );
+
+	context->Unmap( VertexBuffer, 0 );
 	return true;
 }
 
-void CSentence::Render( ID3D11DeviceContext * context, float x, float y )
+void CSentence::Render( ID3D11DeviceContext * context )
 {	
-	if (x == PreviousX && y == PreviousY)
-	{
-		RenderBuffers( context );
-		return;
-	}
-	x = ((float)ScreenWidth / 2 * -1) + x;
-	y = ((float)ScreenHeight / 2) - y;
-	PreviousX = (UINT)x;
-	PreviousY = (UINT)y;
-	D3D11_MAPPED_SUBRESOURCE mapped;
-	context->Map( VertexBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped );
-	FontClass::BuildVertexArray( mapped.pData, Sentence.c_str(), x, y );
-	context->Unmap( VertexBuffer, 0 );
 	RenderBuffers( context );
 }
 

@@ -32,13 +32,12 @@ class CGraphics sealed
 	CLight *Light;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
-	CSentence *m_CursorPosition;
 	CSentence *m_Cheat;
+	CSentence *m_CursorX;
+	CSentence *m_CursorY;
 	BitmapClass *m_RenderTexture;
 	CRenderTexture *m_TextureRenderer;
 	DirectX::XMFLOAT4 m_ClippingPlane;
-	UINT m_MouseX;
-	UINT m_MouseY;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	UINT m_RenderCount;
@@ -50,7 +49,7 @@ public:
 	void Frame( bool RenderMenu, DWORD dwFramesPerSecond = 0, float fFrameTime = 0.0f, UINT MouseX = 0, UINT MouseY = 0, char * cheat = "" );
 	void Shutdown();
 private:
-	void Render( bool RenderMenu, char * Cheat );
+	void Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY );
 	void Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat );
 };
 

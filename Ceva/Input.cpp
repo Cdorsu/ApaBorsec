@@ -6,7 +6,7 @@ CInput::CInput( HINSTANCE hInstance, HWND hWnd, UINT ScreenWidth, UINT ScreenHei
 {
 	m_ScreenWidth = (LONG)ScreenWidth;
 	m_ScreenHeight = (LONG)ScreenHeight;
-	m_CursorPosition = { m_ScreenWidth / 2,m_ScreenHeight / 2 };
+	m_CursorPosition = { 0,0 };
 	HRESULT hr;
 	hr = DirectInput8Create( hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&m_DIDevice, NULL );
 	if (FAILED( hr ))
