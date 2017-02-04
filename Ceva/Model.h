@@ -41,6 +41,7 @@ public:
 	~CModel();
 public:
 	bool Initialize( ID3D11Device * device );
+	bool Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR Texture );
 	bool Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR Texture, LPWSTR Bumpmap, LPWSTR Specular );
 	void Render( ID3D11DeviceContext * context );
 	void Shutdown();

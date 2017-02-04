@@ -106,6 +106,82 @@ bool CModel::Initialize( ID3D11Device * device )
 	return true;
 }
 
+bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpTexture )
+{
+	HRESULT hr;
+	Texture = new CTexture( );
+	if ( !Texture->Initialize( device, lpTexture ) )
+		return false;
+
+	std::wifstream ifs( lpFilepath );
+	if ( !ifs.is_open( ) )
+		return false;
+	wchar_t check = NULL;
+	while ( check != ':' )
+	{
+		check = ifs.get( );
+	}
+	ifs >> VertexCount;
+	IndexCount = VertexCount;
+	std::vector<DWORD> indices( IndexCount );
+	std::vector<Vertex> vertices( VertexCount );
+	check = ifs.get( );
+	while ( check != ':' )
+	{
+		check = ifs.get( );
+	}
+	check = ifs.get( );
+	for ( UINT i = 0; i < VertexCount; ++i )
+	{
+		float x, y, z, u, v, nx, ny, nz;
+		indices[ i ] = i;
+		ifs >> x >> y >> z >> u >> v >> nx >> ny >> nz;
+		vertices[ i ].Position = DirectX::XMFLOAT3( x, y, z );
+		vertices[ i ].Texture = DirectX::XMFLOAT2( u, v );
+		vertices[ i ].Normal = DirectX::XMFLOAT3( nx, ny, nz );
+	}
+	ifs.close( );
+#pragma region Calculate vectors
+
+	for ( UINT i = 0; i < indices.size( ) / 3; ++i )
+	{
+		math::XMFLOAT3 Tangent, Binormal, Normal;
+		math::CalculateTangentandBinormal( vertices[ indices[ ( i * 3 ) ] ].Position, vertices[ indices[ ( i * 3 ) + 1 ] ].Position, vertices[ indices[ ( i * 3 ) + 2 ] ].Position,
+			vertices[ indices[ ( i * 3 ) ] ].Texture, vertices[ indices[ ( i * 3 ) + 1 ] ].Texture, vertices[ indices[ ( i * 3 ) + 2 ] ].Texture, Tangent, Binormal );
+		vertices[ indices[ ( i * 3 ) ] ].Tangent = Tangent;
+		vertices[ indices[ ( i * 3 ) + 1 ] ].Tangent = Tangent;
+		vertices[ indices[ ( i * 3 ) + 2 ] ].Tangent = Tangent;
+		vertices[ indices[ ( i * 3 ) ] ].Binormal = Binormal;
+		vertices[ indices[ ( i * 3 ) + 1 ] ].Binormal = Binormal;
+		vertices[ indices[ ( i * 3 ) + 2 ] ].Binormal = Binormal;
+		/*math::CalculateNormal( Tangent, Binormal, Normal );
+		vertices[indices[(i * 3)]].Normal = Normal;
+		vertices[indices[(i * 3) + 1]].Normal = Normal;
+		vertices[indices[(i * 3) + 2]].Normal = Normal;*/
+	}
+
+#pragma endregion
+	World = DirectX::XMMatrixIdentity( );
+	D3D11_BUFFER_DESC buffDesc = { 0 };
+	D3D11_SUBRESOURCE_DATA buffData = { 0 };
+	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+	buffDesc.ByteWidth = sizeof( Vertex ) * VertexCount;
+	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+	buffData.pSysMem = &vertices[ 0 ];
+	hr = device->CreateBuffer( &buffDesc, &buffData, &VertexBuffer );
+	if ( FAILED( hr ) )
+		return false;
+	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
+	buffDesc.ByteWidth = sizeof( DWORD ) * IndexCount;
+	buffData.pSysMem = &indices[ 0 ];
+	buffData.SysMemPitch = 0;
+	buffData.SysMemSlicePitch = 0;
+	hr = device->CreateBuffer( &buffDesc, &buffData, &IndexBuffer );
+	if ( FAILED( hr ) )
+		return false;
+	return true;
+}
+
 bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpTexture, LPWSTR Bumpmap, LPWSTR Specular )
 {
 	HRESULT hr;
