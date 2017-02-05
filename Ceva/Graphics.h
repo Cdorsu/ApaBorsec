@@ -20,6 +20,7 @@ class CGraphics sealed
 	D3DClass *m_d3d;
 	CModel *m_Triangle;
 	CModel *m_Model;
+	CModel *m_Floor;
 	BitmapClass *m_Cursor;
 	CSimpleShader *m_NoPlaneClippingShader;
 	CSimpleShader *m_PlaneClippingShader;

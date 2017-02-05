@@ -58,6 +58,7 @@ bool CGame::InitializeWindow()
 	wndClass.cbSize = sizeof( WNDCLASSEX );
 	wndClass.hbrBackground = (HBRUSH)(GetStockObject( DKGRAY_BRUSH ));
 	wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
+	wndClass.hIcon = LoadIcon( m_hInstance, MAKEINTRESOURCE( IDI_ICON1 ) );
 	wndClass.hInstance = m_hInstance;
 	wndClass.lpfnWndProc = WndProc;
 	wndClass.lpszClassName = L"Game";

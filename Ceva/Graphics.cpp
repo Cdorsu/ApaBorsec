@@ -20,6 +20,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Model = new CModel();
 	if (!m_Model->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
 		return false;
+	m_Floor = new CModel( );
+	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"floor.txt", L"blue01.dds" ) )
+		return false;
 	m_Cursor = new BitmapClass();
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
 		return false;
@@ -103,6 +106,8 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	m_Model->Identity();
 	m_Model->Translate( 0.0f, 0.0f, 3.0f );
 	m_Model->RotateY( 4 * Rotation );
+	m_Floor->Identity( );
+	m_Floor->Translate( 0.0f, -1.0f, 0.0f );
 	if (RenderMenu)
 	{
 		char buffer[500] = { 0 };
@@ -188,6 +193,13 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 			Light, m_ClippingPlane );
 		m_RenderCount++;
 	}
+
+	m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_Floor->GetTexture( ), NULL, NULL,
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
+		Light, m_ClippingPlane );
+	m_RenderCount++;
 
 	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext(), m_d3d->GetDepthStencilView() );
 	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.5f, 0.5f, 0.5f, 0.5f ) );
@@ -307,6 +319,9 @@ void CGraphics::Shutdown()
 
 	m_Triangle->Shutdown();
 	delete m_Triangle;
+
+	m_Floor->Shutdown( );
+	delete m_Floor;
 	
 	m_d3d->Shutdown();
 	delete m_d3d;

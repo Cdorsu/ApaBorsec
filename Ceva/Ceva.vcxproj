@@ -150,6 +150,7 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="RenderTexture.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Sentence.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="common.h" />
@@ -217,6 +218,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Ceva.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="BORSEC_logo-CMYK.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
