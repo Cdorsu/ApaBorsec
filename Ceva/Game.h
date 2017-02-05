@@ -3,6 +3,7 @@
 #include "Graphics.h"
 #include "HRTimer.h"
 #include "Input.h"
+#include "resource.h"
 
 class CGame
 {

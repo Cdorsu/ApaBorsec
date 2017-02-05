@@ -25,7 +25,7 @@ private:
 	void RenderBuffers( ID3D11DeviceContext * context );
 public:
 	bool Initialize( ID3D11Device * device, char * sentence, int ScreenWidth, int ScreenHeigth, float x, float y );
-	bool Update( ID3D11DeviceContext * context, char* sentence, float x = -1.0f, float y = -1.0f );
+	bool Update( ID3D11DeviceContext * context, char* sentence, size_t length, float x = -1.0f, float y = -1.0f );
 	void Render( ID3D11DeviceContext * context);
 	void Shutdown();
 public:

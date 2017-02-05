@@ -21,7 +21,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!m_Model->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
 		return false;
 	m_Floor = new CModel( );
-	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"floor.txt", L"Blue01.dds" ) )
+	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"floor.txt", L"blue01.dds" ) )
 		return false;
 	m_Cursor = new BitmapClass();
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
@@ -35,6 +35,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_PlaneClippingShader = new CSimpleShader( );
 	if ( !m_PlaneClippingShader->Initialize( m_d3d->GetDevice( ), CSimpleShader::EType::PlaneClipping ) )
 		return false;
+	m_TextureShader = new CTextureShader( );
+	if ( !m_TextureShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_LinearFogShader = new CFogShader();
 	if (!m_LinearFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::LinearFog))
 		return false;
@@ -47,18 +50,11 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_2DShader = new C2DShader();
 	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
 		return false;
-	m_ReflectionShader = new CReflectionShader( );
-	if ( !m_ReflectionShader->Initialize( m_d3d->GetDevice( ) ) )
-		return false;
 	m_Camera = new CCamera();
-	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -7.0f, 1.0f ),
-		0.5f * FLOAT_PI, 4 / 3, 0.1f, 100.0f, 15.0f ))
+	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 5.0f, -3.0f, 1.0f ),
+		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ))
 		return false;
-	m_ReflectionCamera = new CCamera( );
-	if ( !m_ReflectionCamera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 1.0f ),
-		0.5 * FLOAT_PI, 4 / 3, 0.1f, 100.0f, 0.0f ) )
-		return false;
-	m_ReflectionCamera->SetPitch( DEG2RAD( -90 ) );
+	m_Camera->SetPitch( DEG2RAD( 70 ) );
 	m_Up = new CCamera();
 	if (!m_Up->Initialize( DirectX::XMVectorSet( 0.0f, 5.0f, -3.0f, 1.0f ),
 		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 0.0f ))
@@ -110,42 +106,44 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 		Rotation = 0.0f;
 	Rotation += 0.125f * fFrameTime;
 	m_Triangle->Identity();
-	m_Triangle->Translate( 0.0f, 4.0f, 0.0f );
 	m_Triangle->RotateY( Rotation );
 	m_Model->Identity();
-	m_Model->Translate( 0.0f, 4.0f, 0.0f );
 	m_Model->Translate( 0.0f, 0.0f, 3.0f );
 	m_Model->RotateY( 4 * Rotation );
+	m_Floor->Identity( );
+	m_Floor->Translate( 0.0f, -1.5f, 0.0f );
 	if (RenderMenu)
 	{
 		char buffer[500] = { 0 };
 		sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
-		m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 1.0f );
+		m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
 		if (strcmp( cheat, "GetRenderCount" ) == 0)
 		{
 			sprintf_s( buffer, "Render count: %d", m_RenderCount );
-			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 18.0f );
+			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ) - 1, 1.0f, 18.0f );
 		}
 		else
 		{
 			sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
-			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 18.0f );
+			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
 		}
 		if ( strlen( cheat ) > 0 )
 		{
 			sprintf_s( buffer, ":%s:", cheat );
-			m_Cheat->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, ( float ) m_WindowHeight - 17.0f );
+			m_Cheat->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, ( float ) m_WindowHeight - 17.0f );
 		}
 		index = 0;
-		memset( MousePosition, '0', sizeof( char ) * 4 );
+		for ( int i = 0; i < 4; ++i )
+			MousePosition[ i ] = '0';
 		while ( MouseX && index < 4 )
 		{
 			MousePosition[ 3 - index++ ] = MouseX % 10 + '0';
 			MouseX /= 10;
 		}
 		sprintf_s( buffer, "Cursor Position X: %s", MousePosition );
-		m_CursorX->Update( m_d3d->GetImmediateContext( ), buffer, m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
-		memset( MousePosition, '0', sizeof( char ) * 4 );
+		m_CursorX->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
+		for ( int i = 0; i < 4; ++i )
+			MousePosition[ i ] = '0';
 		index = 0;
 		while ( MouseY && index < 4 )
 		{
@@ -153,7 +151,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 			MouseY /= 10;
 		}
 		sprintf_s( buffer, "Cursor Position Y: %s", MousePosition );
-		m_CursorY->Update( m_d3d->GetImmediateContext( ), buffer, m_WindowWidth - 150.0f, m_WindowHeight - 16.0f );
+		m_CursorY->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), m_WindowWidth - 150.0f, m_WindowHeight - 16.0f );
 	}
 	else
 	{
@@ -170,12 +168,33 @@ void CGraphics::Frame( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTim
 
 void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY )
 {
-	static DirectX::XMVECTOR ReflectPoint, ReflectionDir;
 	m_RenderCount = 0;
-	m_d3d->BeginScene();
 	m_d3d->DisableCulling();
 	m_Camera->Render();
 	m_Up->Render();
+
+	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
+	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.5f, 0.5f, 0.5f, 0.5f ) );
+
+	m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_Floor->GetTexture( ),
+		m_Floor->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ) );
+
+	m_Triangle->Render( m_d3d->GetImmediateContext( ) );
+	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
+		m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
+		m_Triangle->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ), m_Up->GetCameraPosition( ),
+		Light );
+
+	m_Model->Render( m_d3d->GetImmediateContext( ) );
+	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
+		m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
+		m_Model->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ), m_Up->GetCameraPosition( ),
+		Light );
+
+	m_d3d->EnableBackBuffer( );
+	m_d3d->BeginScene();
 
 	DirectX::XMVECTOR coord = DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 0.0f );
 	coord = DirectX::XMVector3TransformCoord( coord, m_Triangle->GetWorld() );
@@ -200,41 +219,22 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 			Light, m_ClippingPlane );
 		m_RenderCount++;
 	}
-	
-	ReflectPoint = m_Floor->getMiddlePoint( );
-	ReflectPoint = DirectX::XMVectorSet( DirectX::XMVectorGetX( ReflectPoint ),
-		DirectX::XMVectorGetY( ReflectPoint ) - 0.5f, DirectX::XMVectorGetZ( ReflectPoint ), 1.0f );
-	/*ReflectionDir = m_Camera->GetCameraDirection( );
-	ReflectionDir = DirectX::XMVector3Reflect( ReflectionDir, DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 1.0f ) );*/
-	//m_ReflectionCamera->SetCamPos( ReflectPoint );
-	//m_ReflectionCamera->SetCamForward( ReflectionDir );
-
-	m_ReflectionCamera->Render( );
-
-	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
-	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::HexToRGB( 0x00FF00 ) );
-
-	m_Model->Render( m_d3d->GetImmediateContext( ) );
-	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
-		m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
-		m_Model->GetWorld( ), m_ReflectionCamera->GetView( ), m_ReflectionCamera->GetProjection( ), m_ReflectionCamera->GetCameraPosition( ),
-		Light, m_ClippingPlane );
-
-	m_Triangle->Render( m_d3d->GetImmediateContext( ) );
-	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
-		m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
-		m_Triangle->GetWorld( ), m_ReflectionCamera->GetView( ), m_ReflectionCamera->GetProjection( ), m_ReflectionCamera->GetCameraPosition( ),
-		Light, m_ClippingPlane );
-
-	m_d3d->EnableBackBuffer( );
 
 	m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_ReflectionShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
-	m_Floor->GetTexture( ), m_TextureRenderer->GetTexture( ),
-	m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_ReflectionCamera->GetView( ) );
-	//m_RenderTexture->Render( m_d3d->GetImmediateContext( ), 10, 34 );
-	//m_2DShader->Render( m_d3d->GetImmediateContext( ), m_RenderTexture->GetIndexCount( ),
-		//m_TextureRenderer->GetTexture( ), DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_TextureRenderer->GetTexture( ), 
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
+	m_RenderCount++;
+
+	m_RenderTexture->Render( m_d3d->GetImmediateContext(), 50, 50 );
+	m_2DShader->Render( m_d3d->GetImmediateContext(), m_RenderTexture->GetIndexCount(), m_TextureRenderer->GetTexture(),
+		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix() );
+
+	/*m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_TextureRenderer->GetTexture( ),
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
+	m_RenderCount++;*/
 
 	if (RenderMenu)
 	{
@@ -308,6 +308,9 @@ void CGraphics::Shutdown()
 	m_PlaneClippingShader->Shutdown( );
 	delete m_PlaneClippingShader;
 
+	m_TextureShader->Shutdown( );
+	delete m_TextureShader;
+
 	m_LinearFogShader->Shutdown();
 	delete m_LinearFogShader;
 
@@ -317,9 +320,6 @@ void CGraphics::Shutdown()
 	m_ExponentialFogShader2->Shutdown();
 	delete m_ExponentialFogShader2;
 
-	m_ReflectionShader->Shutdown( );
-	delete m_ReflectionShader;
-
 	delete Light;
 
 	m_Up->Shutdown();
@@ -327,9 +327,6 @@ void CGraphics::Shutdown()
 	
 	m_Camera->Shutdown();
 	delete m_Camera;
-
-	m_ReflectionCamera->Shutdown( );
-	delete m_ReflectionCamera;
 	
 	m_Cursor->Shutdown();
 	delete m_Cursor;
@@ -339,10 +336,10 @@ void CGraphics::Shutdown()
 
 	m_Triangle->Shutdown();
 	delete m_Triangle;
-	
+
 	m_Floor->Shutdown( );
 	delete m_Floor;
-
+	
 	m_d3d->Shutdown();
 	delete m_d3d;
 }
