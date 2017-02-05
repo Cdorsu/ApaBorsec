@@ -40,9 +40,18 @@ public:
 public:
 	inline DirectX::XMMATRIX GetView() { return camView; };
 	inline DirectX::XMMATRIX GetProjection() { return camProjection; };
+	inline DirectX::XMVECTOR GetCameraDirection( ) { return camForward; };
+	inline DirectX::XMVECTOR GetCamPos( ) { return camPos; };
 	inline DirectX::XMFLOAT3 GetCameraPosition() { DirectX::XMFLOAT3 ret; DirectX::XMStoreFloat3( &ret, camPos ); return ret; };
+	inline DirectX::XMFLOAT3 GetCameraRotation( ) { return DirectX::XMFLOAT3( camYaw, camPitch, camRoll ); };
 public:
+	inline void Look( ) { camView = DirectX::XMMatrixLookAtLH( camPos, camForward, camUp ); };
 	inline void SetYaw( float Value ) { camYaw = Value; };
 	inline void SetPitch( float Value ) { camPitch = Value; };
+	inline void SetRoll( float Value ) { camRoll = Value; };
+	inline void SetCamPos( DirectX::XMVECTOR& NewPos ) { camPos = NewPos; };
+	inline void SetCamForward( DirectX::XMVECTOR& NewDir ) { camForward = NewDir; };
+	inline void SetCamPos( DirectX::XMFLOAT3 NewPos ) { camPos = DirectX::XMVectorSet( NewPos.x, NewPos.y, NewPos.y, 1.0f ); };
+	inline void SetCamRot( DirectX::XMFLOAT3 NewRot ) { camYaw = NewRot.x; camPitch = NewRot.y; camRoll = NewRot.z; };
 };
 

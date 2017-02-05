@@ -140,6 +140,10 @@ void CCamera::Update(float frametime)
 void CCamera::Render()
 {
 	using namespace DirectX;
+	if ( camPitch <= -1.5f )
+		camPitch = -1.5f;
+	else if ( camPitch >= 1.5f )
+		camPitch = 1.5f;
 	DirectX::XMMATRIX RotationMatrix;
 	RotationMatrix = DirectX::XMMatrixRotationRollPitchYaw( camPitch, camYaw, camRoll );
 	camForward = DirectX::XMVector3TransformCoord( DefaultForward, RotationMatrix );

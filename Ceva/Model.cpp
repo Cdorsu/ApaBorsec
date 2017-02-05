@@ -47,6 +47,7 @@ bool CModel::Initialize( ID3D11Device * device )
 		Vertex( 1.0f,-1.0f,-1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f ), // 22
 		Vertex( 1.0f,-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f ), // 23
 	};
+	MiddlePoint = DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 0.0f );
 	VertexCount = sizeof(Vertices)/sizeof(Vertices[0]);
 	DWORD Indices[] =
 	{
@@ -130,12 +131,33 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpText
 	{
 		check = ifs.get( );
 	}
+	float xMax = -FLT_MAX, xMin = FLT_MAX;
+	float yMax = -FLT_MAX, yMin = FLT_MAX;
+	float zMax = -FLT_MAX, zMin = FLT_MAX;
 	check = ifs.get( );
 	for ( UINT i = 0; i < VertexCount; ++i )
 	{
 		float x, y, z, u, v, nx, ny, nz;
 		indices[ i ] = i;
 		ifs >> x >> y >> z >> u >> v >> nx >> ny >> nz;
+		
+#pragma region GetMaxMinValues
+		if ( x > xMax )
+			xMax = x;
+		else if ( x < xMin )
+			xMin = x;
+
+		if ( y > yMax )
+			yMax = y;
+		else if ( y < yMin )
+			yMin = y;
+
+		if ( z > zMax )
+			zMax = z;
+		else if ( z < zMin )
+			zMin = z;
+#pragma endregion
+
 		vertices[ i ].Position = DirectX::XMFLOAT3( x, y, z );
 		vertices[ i ].Texture = DirectX::XMFLOAT2( u, v );
 		vertices[ i ].Normal = DirectX::XMFLOAT3( nx, ny, nz );
@@ -162,6 +184,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpText
 
 #pragma endregion
 	World = DirectX::XMMatrixIdentity( );
+	MiddlePoint = DirectX::XMVectorSet( ( xMin + xMax ) / 2.0f, ( yMin + yMax ) / 2.0f, ( zMin + zMax ) / 2.0f, 0.0f );
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };
 	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
@@ -213,11 +236,32 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpText
 		check = ifs.get();
 	}
 	check = ifs.get();
+	float xMax = -FLT_MAX, xMin = FLT_MAX;
+	float yMax = -FLT_MAX, yMin = FLT_MAX;
+	float zMax = -FLT_MAX, zMin = FLT_MAX;
 	for (UINT i = 0; i < VertexCount; ++i)
 	{
 		float x, y, z, u, v, nx, ny, nz;
 		indices[i] = i;
 		ifs >> x >> y >> z >> u >> v >> nx >> ny >> nz;
+
+#pragma region GetMaxMinValues
+		if ( x > xMax )
+			xMax = x;
+		else if ( x < xMin )
+			xMin = x;
+
+		if ( y > yMax )
+			yMax = y;
+		else if ( y < yMin )
+			yMin = y;
+
+		if ( z > zMax )
+			zMax = z;
+		else if ( z < zMin )
+			zMin = z;
+#pragma endregion
+
 		vertices[i].Position = DirectX::XMFLOAT3( x, y, z );
 		vertices[i].Texture = DirectX::XMFLOAT2( u, v );
 		vertices[i].Normal = DirectX::XMFLOAT3( nx, ny, nz );
@@ -244,6 +288,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR lpText
 
 #pragma endregion
 	World = DirectX::XMMatrixIdentity();
+	MiddlePoint = DirectX::XMVectorSet( ( xMin + xMax ) / 2.0f, ( yMin + yMax ) / 2.0f, ( zMin + zMax ) / 2.0f, 0.0f );
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };
 	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;

@@ -105,7 +105,7 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	dsViewDesc.Format = DXGI_FORMAT::DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsViewDesc.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsViewDesc.Texture2D.MipSlice = 0;
-	hr = m_d3d11Device->CreateDepthStencilView( DSBuffer, &dsViewDesc, &m_DepthStencilView );
+	hr = m_d3d11Device->CreateDepthStencilView( DSBuffer, NULL, &m_DepthStencilView );
 	if (FAILED( hr ))
 		return false;
 	DSBuffer->Release();

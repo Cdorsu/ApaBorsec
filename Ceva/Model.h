@@ -33,6 +33,7 @@ private:
 	ID3D11Buffer *VertexBuffer, *IndexBuffer;
 	UINT VertexCount, IndexCount;
 	DirectX::XMMATRIX World;
+	DirectX::XMVECTOR MiddlePoint;
 	CTexture *Texture;
 	CTexture *BumpMap;
 	CTexture *SpecularMap;
@@ -57,6 +58,7 @@ public:
 	inline void RotateY( float Angle ) { World *= DirectX::XMMatrixRotationY( Angle ); };
 	inline void RotateZ( float Angle ) { World *= DirectX::XMMatrixRotationZ( Angle ); };
 	inline void Identity() { World = DirectX::XMMatrixIdentity(); };
+	inline DirectX::XMVECTOR getMiddlePoint( ) { return DirectX::XMVector3TransformCoord( MiddlePoint, World ); };
 public:
 	inline void* operator new(size_t size)
 	{
