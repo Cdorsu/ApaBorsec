@@ -18,7 +18,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!m_Triangle->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
 		return false;
 	m_Model = new CModel();
-	if (!m_Model->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
+	if (!m_Model->Initialize( m_d3d->GetDevice(), L"sphere.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
 		return false;
 	m_Floor = new CModel( );
 	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"floor.txt", L"blue01.dds" ) )
@@ -47,14 +47,16 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_ExponentialFogShader2 = new CFogShader();
 	if (!m_ExponentialFogShader2->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::ExponentialFog2))
 		return false;
+	m_ReflectionShader = new CReflectionShader( );
+	if ( !m_ReflectionShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_2DShader = new C2DShader();
 	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
 		return false;
 	m_Camera = new CCamera();
-	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 5.0f, -3.0f, 1.0f ),
+	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
 		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ))
 		return false;
-	m_Camera->SetPitch( DEG2RAD( 70 ) );
 	m_Up = new CCamera();
 	if (!m_Up->Initialize( DirectX::XMVectorSet( 0.0f, 5.0f, -3.0f, 1.0f ),
 		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 0.0f ))
@@ -171,26 +173,27 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_RenderCount = 0;
 	m_d3d->DisableCulling();
 	m_Camera->Render();
+	m_Camera->RenderReflection( -1.0f );
 	m_Up->Render();
 
 	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
-	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.5f, 0.5f, 0.5f, 0.5f ) );
+	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.0f, 0.0f, 0.0f, 0.5f ) );
 
-	m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	/*m_Floor->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
 		m_Floor->GetTexture( ),
-		m_Floor->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ) );
+		m_Floor->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ) );*/
 
 	m_Triangle->Render( m_d3d->GetImmediateContext( ) );
 	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
 		m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
-		m_Triangle->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ), m_Up->GetCameraPosition( ),
+		m_Triangle->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
 		Light );
 
 	m_Model->Render( m_d3d->GetImmediateContext( ) );
 	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
 		m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
-		m_Model->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ), m_Up->GetCameraPosition( ),
+		m_Model->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
 		Light );
 
 	m_d3d->EnableBackBuffer( );
@@ -221,20 +224,13 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	}
 
 	m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
-		m_TextureRenderer->GetTexture( ), 
-		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
+	m_ReflectionShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_Floor->GetTexture( ), m_TextureRenderer->GetTexture( ),
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
+		m_Camera->GetReflectView( ) );
+	/*m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_TextureRenderer->GetTexture( ), m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );*/
 	m_RenderCount++;
-
-	m_RenderTexture->Render( m_d3d->GetImmediateContext(), 50, 50 );
-	m_2DShader->Render( m_d3d->GetImmediateContext(), m_RenderTexture->GetIndexCount(), m_TextureRenderer->GetTexture(),
-		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix() );
-
-	/*m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
-		m_TextureRenderer->GetTexture( ),
-		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
-	m_RenderCount++;*/
 
 	if (RenderMenu)
 	{
@@ -307,6 +303,9 @@ void CGraphics::Shutdown()
 
 	m_PlaneClippingShader->Shutdown( );
 	delete m_PlaneClippingShader;
+
+	m_ReflectionShader->Shutdown( );
+	delete m_ReflectionShader;
 
 	m_TextureShader->Shutdown( );
 	delete m_TextureShader;

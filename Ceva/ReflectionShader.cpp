@@ -93,19 +93,23 @@ void CReflectionShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmo
 	using namespace DirectX;
 	static HRESULT hr;
 	static XMMATRIX WVP;
-	static XMMATRIX RVP;
+	static XMMATRIX RPW;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	context->IASetInputLayout( InputLayout );
 	context->VSSetShader( VertexShader, nullptr, 0 );
 	context->PSSetShader( PixelShader, nullptr, 0 );
 	WVP = World * View * Projection;
-	RVP = World * ReflectionView * Projection;
+	/*RPW = ReflectionView * Projection * World;*/
 	hr = context->Map( ConstantBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
 		return;
-	( ( SConstantBuffer* ) MappedResource.pData )->WVP = XMMatrixTranspose( WVP );
+	//( ( SConstantBuffer* ) MappedResource.pData )->WVP = XMMatrixTranspose( WVP );
+	( ( SConstantBuffer* ) MappedResource.pData )->World = XMMatrixTranspose( WVP );
 	( ( SConstantBuffer* ) MappedResource.pData )->World = XMMatrixTranspose( World );
-	( ( SConstantBuffer* ) MappedResource.pData )->RVP = XMMatrixTranspose( XMMatrixIdentity( ) );
+	( ( SConstantBuffer* ) MappedResource.pData )->Projection = XMMatrixTranspose( Projection );
+	( ( SConstantBuffer* ) MappedResource.pData )->View = XMMatrixTranspose( View );
+	( ( SConstantBuffer* ) MappedResource.pData )->ReflectView = XMMatrixTranspose( ReflectionView );
+	//( ( SConstantBuffer* ) MappedResource.pData )->RPW = XMMatrixTranspose( RPW );
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
 	context->PSSetSamplers( 0, 1, &Sampler );

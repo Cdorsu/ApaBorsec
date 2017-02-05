@@ -6,6 +6,7 @@
 #include "D3DClass.h"
 #include "Model.h"
 #include "SimpleShader.h"
+#include "ReflectionShader.h"
 #include "Camera.h"
 #include "Light.h"
 #include "C2DShader.h"
@@ -29,6 +30,7 @@ class CGraphics sealed
 	CFogShader *m_LinearFogShader;
 	CFogShader *m_ExponentialFogShader;
 	CFogShader *m_ExponentialFogShader2;
+	CReflectionShader *m_ReflectionShader;
 	CTextureShader *m_TextureShader;
 	CCamera *m_Camera;
 	CCamera *m_Up;

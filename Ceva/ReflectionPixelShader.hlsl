@@ -12,12 +12,14 @@ struct PSIn
 float4 main(PSIn input) : SV_TARGET
 {
     float4 modelTexture = textures[0].Sample( Sampler, input.Tex );
+    float2 reflectTexCoord;
 
-    input.Reflection.x = input.Reflection.x / input.Reflection.w / 2.0f + 0.5f;
-    input.Reflection.y = -input.Reflection.y / input.Reflection.w / 2.0f + 0.5f;
+    reflectTexCoord.x = input.Reflection.x / input.Reflection.w / 2.0f + 0.5f;
+    reflectTexCoord.y = -input.Reflection.y / input.Reflection.w / 2.0f + 0.5f;
 
-    float4 reflectionColor = textures[1].Sample( Sampler, input.Tex );
+    float4 reflectionColor = textures[1].Sample( Sampler, reflectTexCoord );
 
-    return reflectionColor;
-    //return lerp( modelTexture, reflectionColor, 0.15f );
+    //return reflectionColor;
+
+    return lerp( modelTexture, reflectionColor, 0.5f );
 }

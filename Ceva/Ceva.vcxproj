@@ -128,6 +128,7 @@
     <ClCompile Include="FogShader.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="ReflectionShader.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Sentence.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="ReflectionShader.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Sentence.h" />
@@ -214,6 +216,11 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="ReflectionPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="ReflectionVertexShader.hlsl" />
     <FxCompile Include="TexturePixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

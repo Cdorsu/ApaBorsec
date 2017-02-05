@@ -18,8 +18,10 @@ private:
 	struct SConstantBuffer
 	{
 		DirectX::XMMATRIX WVP;
-		DirectX::XMMATRIX RVP;
 		DirectX::XMMATRIX World;
+		DirectX::XMMATRIX View;
+		DirectX::XMMATRIX Projection;
+		DirectX::XMMATRIX ReflectView;
 	};
 private:
 	ID3D11VertexShader *VertexShader;
