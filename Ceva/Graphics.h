@@ -10,6 +10,7 @@
 #include "Light.h"
 #include "C2DShader.h"
 #include "FogShader.h"
+#include "TextureShader.h"
 #include "BitmapClass.h"
 #include "Sentence.h"
 #include "RenderTexture.h"
@@ -28,6 +29,7 @@ class CGraphics sealed
 	CFogShader *m_LinearFogShader;
 	CFogShader *m_ExponentialFogShader;
 	CFogShader *m_ExponentialFogShader2;
+	CTextureShader *m_TextureShader;
 	CCamera *m_Camera;
 	CCamera *m_Up;
 	CLight *Light;

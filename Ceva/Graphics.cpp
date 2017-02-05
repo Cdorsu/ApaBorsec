@@ -35,6 +35,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_PlaneClippingShader = new CSimpleShader( );
 	if ( !m_PlaneClippingShader->Initialize( m_d3d->GetDevice( ), CSimpleShader::EType::PlaneClipping ) )
 		return false;
+	m_TextureShader = new CTextureShader( );
+	if ( !m_TextureShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_LinearFogShader = new CFogShader();
 	if (!m_LinearFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::LinearFog))
 		return false;
@@ -48,9 +51,10 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
 		return false;
 	m_Camera = new CCamera();
-	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -7.0f, 1.0f ),
+	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 5.0f, -3.0f, 1.0f ),
 		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ))
 		return false;
+	m_Camera->SetPitch( DEG2RAD( 70 ) );
 	m_Up = new CCamera();
 	if (!m_Up->Initialize( DirectX::XMVectorSet( 0.0f, 5.0f, -3.0f, 1.0f ),
 		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 0.0f ))
@@ -107,7 +111,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	m_Model->Translate( 0.0f, 0.0f, 3.0f );
 	m_Model->RotateY( 4 * Rotation );
 	m_Floor->Identity( );
-	m_Floor->Translate( 0.0f, -1.0f, 0.0f );
+	m_Floor->Translate( 0.0f, -1.5f, 0.0f );
 	if (RenderMenu)
 	{
 		char buffer[500] = { 0 };
@@ -165,10 +169,32 @@ void CGraphics::Frame( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTim
 void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY )
 {
 	m_RenderCount = 0;
-	m_d3d->BeginScene();
 	m_d3d->DisableCulling();
 	m_Camera->Render();
 	m_Up->Render();
+
+	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
+	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.5f, 0.5f, 0.5f, 0.5f ) );
+
+	m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_Floor->GetTexture( ),
+		m_Floor->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ) );
+
+	m_Triangle->Render( m_d3d->GetImmediateContext( ) );
+	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
+		m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
+		m_Triangle->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ), m_Up->GetCameraPosition( ),
+		Light );
+
+	m_Model->Render( m_d3d->GetImmediateContext( ) );
+	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
+		m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
+		m_Model->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ), m_Up->GetCameraPosition( ),
+		Light );
+
+	m_d3d->EnableBackBuffer( );
+	m_d3d->BeginScene();
 
 	DirectX::XMVECTOR coord = DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 0.0f );
 	coord = DirectX::XMVector3TransformCoord( coord, m_Triangle->GetWorld() );
@@ -195,32 +221,20 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	}
 
 	m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
-		m_Floor->GetTexture( ), NULL, NULL,
-		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-		Light, m_ClippingPlane );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_TextureRenderer->GetTexture( ), 
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
 	m_RenderCount++;
-
-	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext(), m_d3d->GetDepthStencilView() );
-	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.5f, 0.5f, 0.5f, 0.5f ) );
-
-	m_Triangle->Render( m_d3d->GetImmediateContext() );
-	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext(), m_Triangle->GetIndexCount(),
-		m_Triangle->GetTexture(), m_Triangle->GetBumpMap(), m_Triangle->GetSpecularMap(),
-		m_Triangle->GetWorld(), m_Up->GetView(), m_Up->GetProjection(), m_Up->GetCameraPosition(),
-		Light );
-
-	m_Model->Render( m_d3d->GetImmediateContext() );
-	m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext(), m_Model->GetIndexCount(),
-		m_Model->GetTexture(), m_Model->GetBumpMap(), m_Model->GetSpecularMap(),
-		m_Model->GetWorld(), m_Up->GetView(), m_Up->GetProjection(), m_Up->GetCameraPosition(),
-		Light );
-
-	m_d3d->EnableBackBuffer();
 
 	m_RenderTexture->Render( m_d3d->GetImmediateContext(), 50, 50 );
 	m_2DShader->Render( m_d3d->GetImmediateContext(), m_RenderTexture->GetIndexCount(), m_TextureRenderer->GetTexture(),
 		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix() );
+
+	/*m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_TextureRenderer->GetTexture( ),
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
+	m_RenderCount++;*/
 
 	if (RenderMenu)
 	{
@@ -293,6 +307,9 @@ void CGraphics::Shutdown()
 
 	m_PlaneClippingShader->Shutdown( );
 	delete m_PlaneClippingShader;
+
+	m_TextureShader->Shutdown( );
+	delete m_TextureShader;
 
 	m_LinearFogShader->Shutdown();
 	delete m_LinearFogShader;
