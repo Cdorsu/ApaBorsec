@@ -22,6 +22,7 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	D3D11_TEXTURE2D_DESC texDesc = { 0 };
 	UINT totalModes = 0, Numerator,Denominator;
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsViewDesc;
+	D3D11_DEPTH_STENCIL_DESC dsDesc;
 
 	hr = CreateDXGIFactory( __uuidof(IDXGIFactory), (void**)&Factory );
 	if (FAILED( hr ))
@@ -50,8 +51,6 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 		return false;
 	m_GPU = AdapterDesc.Description;
 	m_VideoMemory = (UINT)(AdapterDesc.DedicatedVideoMemory / 1024 / 1024);
-	wchar_t buffer[500];
-	wsprintf( buffer, L"Video card: %ls with %d megabytes of dedicated video memory\n", m_GPU, m_VideoMemory );
 	ofs << L"Video card: " << m_GPU << L" with " << m_VideoMemory << L" megabytes of dedicated video memory\n";
 	ofs.close();
 
@@ -109,6 +108,30 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	if (FAILED( hr ))
 		return false;
 	DSBuffer->Release();
+
+	ZeroMemory( &dsDesc, sizeof( D3D11_DEPTH_STENCIL_DESC ) );
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+	
+	dsDesc.StencilEnable = TRUE;
+	dsDesc.StencilReadMask = 0xFF;
+	dsDesc.StencilWriteMask = 0xFF;
+
+	dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_INCR;
+	dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
+
+	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_DECR;
+	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
+
+	hr = m_d3d11Device->CreateDepthStencilState( &dsDesc, &DSDefaultState );
+	if ( FAILED( hr ) )
+		return false;
+	m_d3d11DeviceContext->OMSetDepthStencilState( DSDefaultState, 1 );
 
 	m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_RenderTargetView, m_DepthStencilView );
 

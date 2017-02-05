@@ -30,6 +30,7 @@ __declspec(align(16)) class D3DClass
 	ID3D11DeviceContext *m_d3d11DeviceContext;
 	ID3D11RasterizerState *NoCulling;
 	ID3D11BlendState *AlphaBlendingEnabled;
+	ID3D11DepthStencilState *DSDefaultState;
 	LPWSTR m_GPU;
 	UINT m_VideoMemory;
 	DirectX::XMMATRIX m_OrthoMatrix;

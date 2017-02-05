@@ -107,21 +107,21 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	{
 		char buffer[500] = { 0 };
 		sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
-		m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 1.0f );
+		m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
 		if (strcmp( cheat, "GetRenderCount" ) == 0)
 		{
 			sprintf_s( buffer, "Render count: %d", m_RenderCount );
-			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 18.0f );
+			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ) - 1, 1.0f, 18.0f );
 		}
 		else
 		{
 			sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
-			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, 18.0f );
+			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
 		}
 		if ( strlen( cheat ) > 0 )
 		{
 			sprintf_s( buffer, ":%s:", cheat );
-			m_Cheat->Update( m_d3d->GetImmediateContext( ), buffer, 1.0f, ( float ) m_WindowHeight - 17.0f );
+			m_Cheat->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, ( float ) m_WindowHeight - 17.0f );
 		}
 		index = 0;
 		for ( int i = 0; i < 4; ++i )
@@ -132,7 +132,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 			MouseX /= 10;
 		}
 		sprintf_s( buffer, "Cursor Position X: %s", MousePosition );
-		m_CursorX->Update( m_d3d->GetImmediateContext( ), buffer, m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
+		m_CursorX->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
 		for ( int i = 0; i < 4; ++i )
 			MousePosition[ i ] = '0';
 		index = 0;
@@ -142,7 +142,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 			MouseY /= 10;
 		}
 		sprintf_s( buffer, "Cursor Position Y: %s", MousePosition );
-		m_CursorY->Update( m_d3d->GetImmediateContext( ), buffer, m_WindowWidth - 150.0f, m_WindowHeight - 16.0f );
+		m_CursorY->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), m_WindowWidth - 150.0f, m_WindowHeight - 16.0f );
 	}
 	else
 	{

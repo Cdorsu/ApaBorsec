@@ -15,7 +15,7 @@ bool CSentence::Initialize( ID3D11Device * device, char * sentence, int iScreenW
 	maxLength = strlen( sentence );
 	x = ( ( float ) ScreenWidth / 2 * -1 ) + x;
 	y = ( ( float ) ScreenHeight / 2 ) - y;
- 	HRESULT hr;
+	HRESULT hr;
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };
 	IndexCount = ( UINT ) strlen( sentence ) * 6;
@@ -39,7 +39,7 @@ bool CSentence::Initialize( ID3D11Device * device, char * sentence, int iScreenW
 	return true;
 }
 
-bool CSentence::Update( ID3D11DeviceContext * context, char * sentence, float x, float y )
+bool CSentence::Update( ID3D11DeviceContext * context, char * sentence, size_t length, float x, float y )
 {
 	if (sentence == Sentence.c_str())
 		return true;
@@ -53,14 +53,13 @@ bool CSentence::Update( ID3D11DeviceContext * context, char * sentence, float x,
 		x = ( ( float ) ScreenWidth / 2 * -1 ) + x;
 		y = ( ( float ) ScreenHeight / 2 ) - y;
 	}
-	size_t length = strlen( sentence );
 	if ( length > maxLength )
 		return false;
 	Sentence = sentence;
 	if ( length <= maxLength )
 	{
-		IndexCount = length * 6;
-		VertexCount = length * 6;
+		IndexCount = ( length - 1 ) * 6;
+		VertexCount = ( length - 1 ) * 6;
 	}
 	D3D11_MAPPED_SUBRESOURCE mapped;
 	context->Map( VertexBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped );
