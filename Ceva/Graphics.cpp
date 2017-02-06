@@ -173,7 +173,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_RenderCount = 0;
 	m_d3d->DisableCulling();
 	m_Camera->Render();
-	m_Camera->RenderReflection( -1.0f );
+	m_Camera->RenderReflection( -1.5f );
 	m_Up->Render();
 
 	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
