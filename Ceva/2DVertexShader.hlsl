@@ -4,7 +4,7 @@ struct VSOUT
     float2 Texture : TEXCOORD;
 };
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register ( b0 )
 {
     float4x4 WVP;
 };

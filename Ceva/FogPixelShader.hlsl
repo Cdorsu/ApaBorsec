@@ -1,5 +1,7 @@
-SamplerState Sampler;
-Texture2D ObjTexture[3];
+SamplerState Sampler : register ( s0 );
+Texture2D Texture : register ( t0 );
+Texture2D Bump : register( t1 );
+Texture2D SpecularMap : register ( t2 );
 
 struct PSIn
 {
@@ -12,7 +14,7 @@ struct PSIn
     float fogFactor : FOG;
 };
 
-cbuffer cbLight // per frame
+cbuffer cbLight : register ( b0 ) // per frame
 {
     float4 AmbientColor;
     float4 DiffuseColor;
@@ -21,7 +23,7 @@ cbuffer cbLight // per frame
     float SpecularPower;
 }
 
-cbuffer cbFog // per frame
+cbuffer cbFog : register ( b1 ) // per frame
 {
     float4 fogColor;
 };
@@ -30,9 +32,9 @@ float4 main( PSIn input ) : SV_TARGET
 {
 
     float4 Color = AmbientColor;
-    float4 TextureColor = ObjTexture[0].Sample( Sampler, input.Tex );
-    float4 BumpColor = ObjTexture[1].Sample( Sampler, input.Tex );
-    float4 SpecularIntensity = ObjTexture[2].Sample( Sampler, input.Tex );
+    float4 TextureColor = Texture.Sample( Sampler, input.Tex );
+    float4 BumpColor = Bump.Sample( Sampler, input.Tex );
+    float4 SpecularIntensity = SpecularMap.Sample( Sampler, input.Tex );
     BumpColor = ( BumpColor * 2.0f ) - 1.0f;
     float3 LightDirection = -LightDir;
 

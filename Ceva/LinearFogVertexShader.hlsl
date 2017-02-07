@@ -7,7 +7,7 @@ struct VSOut
     float fogFactor : FOG;
 };
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register ( b0 )
 {
     float4x4 WVP;
     float4x4 World;
@@ -15,7 +15,7 @@ cbuffer cbPerObject
     float pad;
 };
 
-cbuffer cbFog
+cbuffer cbFog : register ( b1 )
 {
     float fogStart;
     float fogEnd;

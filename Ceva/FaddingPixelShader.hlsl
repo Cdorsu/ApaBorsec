@@ -1,5 +1,5 @@
-SamplerState Sampler;
-Texture2D ObjTexture;
+SamplerState Sampler : register ( s0 );
+Texture2D ObjTexture : register ( t0 );
 
 struct PSIn
 {

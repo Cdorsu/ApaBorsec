@@ -1,7 +1,7 @@
-Texture2D ObjTexture;
-SamplerState Sampler;
+Texture2D ObjTexture : register ( t0 );
+SamplerState Sampler : register ( s0 );
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register( b0 )
 {
     float4 Color;
 };

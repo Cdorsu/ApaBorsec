@@ -5,7 +5,7 @@ struct VSOut
 	float2 tex : TEXCOORD;
 };
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register ( b0 )
 {
 	float4x4 WVP;
 	float4x4 World;

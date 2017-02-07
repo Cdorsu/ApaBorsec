@@ -10,7 +10,7 @@ struct VSOut
     float clip : SV_ClipDistance;
 };
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register ( b0 )
 {
     float4x4 WVP;
     float4x4 World;
@@ -18,7 +18,7 @@ cbuffer cbPerObject
     float pad;
 };
 
-cbuffer cbClippingPlane
+cbuffer cbClippingPlane : register ( b1 )
 {
     float4 plane;
 };
