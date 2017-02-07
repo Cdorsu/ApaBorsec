@@ -34,6 +34,11 @@ private:
 	{
 		DirectX::XMFLOAT4 Plane;
 	};
+	struct SFade
+	{
+		float fade;
+		DirectX::XMFLOAT3 pad;
+	};
 public:
 	enum class EType
 	{
@@ -46,18 +51,21 @@ private:
 	ID3D11Buffer *ConstantBuffer;
 	ID3D11Buffer *LightBuffer;
 	ID3D11Buffer *PlaneBuffer;
+	ID3D11Buffer *FadeBuffer;
 	ID3D11SamplerState *Sampler;
 
 	EType ShaderType;
+	bool bFade;
 public:
 	CSimpleShader();
 	~CSimpleShader();
 public:
-	bool Initialize(ID3D11Device * device, EType type = EType::NoPlaneClipping);
+	bool Initialize(ID3D11Device * device, EType type = EType::NoPlaneClipping, bool bFade = false);
 	void Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 		ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * BumpMap, ID3D11ShaderResourceView* Specular,
 		DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
 		DirectX::XMFLOAT3 CameraPos, CLight* light, DirectX::XMFLOAT4 ClippingPlane = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+	void SetFadeAmount( ID3D11DeviceContext * context, float fadeAmount );
 	void Shutdown();
 private:
 	void OutputShaderError( ID3D10Blob * Error );

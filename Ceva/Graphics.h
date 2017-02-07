@@ -26,6 +26,7 @@ class CGraphics sealed
 	BitmapClass *m_Cursor;
 	CSimpleShader *m_NoPlaneClippingShader;
 	CSimpleShader *m_PlaneClippingShader;
+	CSimpleShader *m_FaddingShader;
 	C2DShader *m_2DShader;
 	CFogShader *m_LinearFogShader;
 	CFogShader *m_ExponentialFogShader;
@@ -46,6 +47,10 @@ class CGraphics sealed
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	UINT m_RenderCount;
+	float m_fStartLoadingTime;
+	float m_fLoadingTime;
+	float m_fFadeAmount;
+	bool m_bIncrease;
 public:
 	CGraphics();
 	~CGraphics();

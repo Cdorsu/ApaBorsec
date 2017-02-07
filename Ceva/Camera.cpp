@@ -170,16 +170,18 @@ void CCamera::RenderReflection( float height )
 	float posY = DirectX::XMVectorGetY( ReflectPos );
 	float posZ = DirectX::XMVectorGetZ( ReflectPos );
 
-	FocusPos = DirectX::XMVectorSet( DirectX::XMVectorGetX( camForward ) + DirectX::XMVectorGetX( ReflectPos ),
+	/*FocusPos = DirectX::XMVectorSet( DirectX::XMVectorGetX( camForward ) + DirectX::XMVectorGetX( ReflectPos ),
 		DirectX::XMVectorGetY( ReflectPos ),
 		DirectX::XMVectorGetZ( camForward ) + DirectX::XMVectorGetZ( ReflectPos ),
-		1.0f );
+		1.0f );*/
+
+	FocusPos = DirectX::XMVector3Reflect( camForward, DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 1.0f ) );
 
 	float atX = DirectX::XMVectorGetX( FocusPos );
 	float atY = DirectX::XMVectorGetY( FocusPos );
 	float atZ = DirectX::XMVectorGetZ( FocusPos );
 
-	camReflectView = DirectX::XMMatrixLookAtLH( ReflectPos, FocusPos, camUp );
+	camReflectView = DirectX::XMMatrixLookToLH( ReflectPos, FocusPos, camUp );
 }
 
 void CCamera::Shutdown()

@@ -7,8 +7,9 @@ CSimpleShader::CSimpleShader( )
 	ZeroMemory( this, sizeof( CSimpleShader ) );
 }
 
-bool CSimpleShader::Initialize( ID3D11Device * device, CSimpleShader::EType type )
+bool CSimpleShader::Initialize( ID3D11Device * device, CSimpleShader::EType type, bool bFade )
 {
+	this->bFade = bFade;
 	ShaderType = type;
 	ID3D10Blob *ShaderBlob = nullptr, *ErrorBlob = nullptr;
 	HRESULT hr = S_OK;
@@ -76,7 +77,14 @@ bool CSimpleShader::Initialize( ID3D11Device * device, CSimpleShader::EType type
 	if ( FAILED( hr ) )
 		return false;
 	SafeRelease( ShaderBlob );
-	hr = D3DX11CompileFromFile( L"PixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	if ( bFade )
+	{
+		hr = D3DX11CompileFromFile( L"FaddingPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	}
+	else
+	{
+		hr = D3DX11CompileFromFile( L"PixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	}
 	if ( FAILED( hr ) )
 	{
 		if ( ShaderBlob )
@@ -113,6 +121,18 @@ bool CSimpleShader::Initialize( ID3D11Device * device, CSimpleShader::EType type
 		if ( FAILED( hr ) )
 			return false;
 	}
+	if ( bFade )
+	{
+		SFade el;
+		el.fade = 0.5f;
+		buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;
+		buffDesc.ByteWidth = sizeof( SFade );
+		buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+		buffDesc.CPUAccessFlags = 0;// D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
+		hr = device->CreateBuffer( &buffDesc, NULL, &FadeBuffer );
+		if ( FAILED( hr ) )
+			return false;
+	}
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory( &sampDesc, sizeof( sampDesc ) );
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
@@ -132,6 +152,17 @@ bool CSimpleShader::Initialize( ID3D11Device * device, CSimpleShader::EType type
 	return true;
 }
 
+void CSimpleShader::SetFadeAmount( ID3D11DeviceContext * context, float fadeAmount )
+{
+	static SFade Fade;
+	if ( bFade )
+	{
+		Fade.fade = fadeAmount;
+		context->UpdateSubresource( FadeBuffer, 0, NULL, &Fade, 0, 0 );
+		context->PSSetConstantBuffers( 0, 1, &FadeBuffer );
+	}
+}
+
 void CSimpleShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * BumpMap, ID3D11ShaderResourceView* Specular,
 	DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
@@ -142,6 +173,7 @@ void CSimpleShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	static XMMATRIX WVP;
 	static SLight Light;
 	static SPlane Plane;
+	static SFade Fade;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	context->IASetInputLayout( InputLayout );
 	context->VSSetShader( VertexShader, nullptr, 0 );
@@ -170,17 +202,21 @@ void CSimpleShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	((SLight*)MappedResource.pData)->AmbientColor = AmbientColor;
 	((SLight*)MappedResource.pData)->DiffuseColor = DiffuseColor;
 	context->Unmap( ConstantBuffer, 0 );*/ /// FOr some God damn reason, map/unmap doesn't work on laptop
-	Light.AmbientColor = light->GetAmbientColor( );
-	Light.DiffuseColor = light->GetDiffuseColor( );
-	Light.LightDir = light->GetDirection( );
-	Light.SpecularColor = light->GetSpecularColor( );
-	Light.SpecularPower = light->GetSpecularPower( );
-	context->UpdateSubresource( LightBuffer, 0, NULL, &Light, 0, 0 );
-	context->PSSetConstantBuffers( 0, 1, &LightBuffer );
+	
+	if ( !bFade )
+	{
+		Light.AmbientColor = light->GetAmbientColor( );
+		Light.DiffuseColor = light->GetDiffuseColor( );
+		Light.LightDir = light->GetDirection( );
+		Light.SpecularColor = light->GetSpecularColor( );
+		Light.SpecularPower = light->GetSpecularPower( );
+		context->UpdateSubresource( LightBuffer, 0, NULL, &Light, 0, 0 );
+		context->PSSetConstantBuffers( 0, 1, &LightBuffer );
+		context->PSSetShaderResources( 1, 1, &BumpMap );
+		context->PSSetShaderResources( 2, 1, &Specular );
+	}
 	context->PSSetSamplers( 0, 1, &Sampler );
 	context->PSSetShaderResources( 0, 1, &Texture );
-	context->PSSetShaderResources( 1, 1, &BumpMap );
-	context->PSSetShaderResources( 2, 1, &Specular );
 	context->DrawIndexed( IndexDrawAmount, 0, 0 );
 }
 
@@ -202,6 +238,7 @@ void CSimpleShader::Shutdown( )
 	SafeRelease( ConstantBuffer );
 	SafeRelease( LightBuffer );
 	SafeRelease( PlaneBuffer );
+	SafeRelease( FadeBuffer );
 	SafeRelease( Sampler );
 }
 
