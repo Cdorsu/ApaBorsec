@@ -1,7 +1,7 @@
 #include "D3DClass.h"
 
 
-common::Color D3DClass::BackgroundColor = common::Color( 0.5f, 0.5f, 0.5f, 1.0f );
+common::Color D3DClass::BackgroundColor = common::Color( 0.0f, 0.0f, 0.0f, 1.0f );
 
 
 D3DClass::D3DClass()

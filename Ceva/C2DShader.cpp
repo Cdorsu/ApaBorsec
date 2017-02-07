@@ -9,18 +9,15 @@ C2DShader::C2DShader()
 
 bool C2DShader::Initialize( ID3D11Device * device )
 {
-	ID3D10Blob *ShaderBlob;
+	ID3D10Blob *ShaderBlob, *ErrorBlob;
 	HRESULT hr;
-	/*hr = D3DX11CompileFromFile( L"2DVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"2DVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if (FAILED( hr ))
 	{
 		if (ShaderBlob)
 			OutputShaderError( ShaderBlob );
 		return false;
-	}*/
-	hr = D3DReadFileToBlob( L"2DVertexShader.cso", &ShaderBlob );
-	if (FAILED( hr ))
-		return false;
+	}
 	hr = device->CreateVertexShader( ShaderBlob->GetBufferPointer(), ShaderBlob->GetBufferSize(), NULL, &VertexShader );
 	if (FAILED( hr ))
 		return false;
@@ -44,16 +41,13 @@ bool C2DShader::Initialize( ID3D11Device * device )
 	if (FAILED( hr ))
 		return false;
 	SafeRelease( ShaderBlob );
-	/*hr = D3DX11CompileFromFile( L"2DPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"2DPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if (FAILED( hr ))
 	{
 		if (ShaderBlob)
 			OutputShaderError( ErrorBlob );
 		return false;
-	}*/
-	hr = D3DReadFileToBlob( L"2DPixelShader.cso", &ShaderBlob );
-	if (FAILED( hr ))
-		return false;
+	}
 	hr = device->CreatePixelShader( ShaderBlob->GetBufferPointer(), ShaderBlob->GetBufferSize(), NULL, &PixelShader );
 	if (FAILED( hr ))
 		return false;

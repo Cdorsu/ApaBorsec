@@ -108,6 +108,20 @@ bool CCamera::isCubeinFrustum( float sortofradius, float x, float y, float z )
 	return false;
 }
 
+bool CCamera::isPlaneinFrustum( DirectX::XMFLOAT3 point1,
+	DirectX::XMFLOAT3 point2, DirectX::XMFLOAT3 point3, DirectX::XMFLOAT3 point4 )
+{
+	if ( isPointinFrustum( point1.x, point1.y, point1.z ) )
+		return true;
+	if ( isPointinFrustum( point2.x, point2.y, point2.z ) )
+		return true;
+	if ( isPointinFrustum( point3.x, point3.y, point3.z ) )
+		return true;
+	if ( isPointinFrustum( point4.x, point4.y, point4.z ) )
+		return true;
+	return false;
+}
+
 bool CCamera::isSphereinFrustum( float radius, float x, float y, float z )
 {
 	using namespace DirectX;

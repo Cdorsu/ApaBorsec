@@ -22,5 +22,5 @@ float4 main(PSIn input) : SV_TARGET
 
     //return reflectionColor;
 
-    return lerp( modelTexture, reflectionColor, 0.9f );
+    return lerp( modelTexture, reflectionColor, 0.25f );
 }

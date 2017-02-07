@@ -32,6 +32,8 @@ public:
 	void Update(float FrameTime);
 	bool isPointinFrustum( float x, float y, float z );
 	bool isCubeinFrustum( float sortofradius, float x, float y, float z );
+	bool isPlaneinFrustum( DirectX::XMFLOAT3 point1,
+		DirectX::XMFLOAT3 point2, DirectX::XMFLOAT3 point3, DirectX::XMFLOAT3 point4 );
 	bool isSphereinFrustum( float radius, float x, float y, float z );
 	void Shutdown();
 private:

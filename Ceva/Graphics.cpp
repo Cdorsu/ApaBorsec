@@ -14,17 +14,8 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_d3d = new D3DClass();
 	if (!m_d3d->Initialize( hInstance, hWnd, WindowWidth, WindowHeight, 0.1f, 100.0f ))
 		return false;
-	m_Triangle = new CModel();
-	if (!m_Triangle->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
-		return false;
-	m_Model = new CModel();
-	if (!m_Model->Initialize( m_d3d->GetDevice(), L"cube.txt", L"stone02.dds", L"bump02.dds", L"spec02.dds" ))
-		return false;
-	m_Floor = new CModel( );
-	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"floor.txt", L"blue01.dds" ) )
-		return false;
 	m_Cursor = new BitmapClass();
-	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
+	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
 		return false;
 	m_RenderTexture = new BitmapClass();
 	if (!m_RenderTexture->Initialize( m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, WindowWidth / 10, WindowHeight / 10 ))
@@ -60,12 +51,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
 		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ))
 		return false;
-	m_Up = new CCamera();
-	if (!m_Up->Initialize( DirectX::XMVectorSet( 0.0f, 5.0f, -3.0f, 1.0f ),
-		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 0.0f ))
-		return false;
-	m_Up->SetPitch( DEG2RAD( 70 ) );
-	if (!FontClass::Initialize( m_d3d->GetDevice(), L"font.dds", L"fontdata.txt" ))
+	if (!FontClass::Initialize( m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt" ))
 		return false;
 	m_Cheat = new CSentence();
 	if ( !m_Cheat->Initialize( m_d3d->GetDevice( ), "Here is a veeeery long string. Here will be wrote possible cheats",
@@ -105,39 +91,8 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
-	static float delta = 1.0f;
 	static char MousePosition[ 4 ];
-	static int index;
-	if ( m_fLoadingTime < m_fStartLoadingTime )
-	{
-		m_fLoadingTime += fFrameTime;
-		if ( m_bIncrease )
-			m_fFadeAmount = m_fLoadingTime / m_fStartLoadingTime;
-		else
-			m_fFadeAmount = 1 - m_fLoadingTime / m_fStartLoadingTime;
-	}
-	else
-	{
-		if ( INPUT_INSTANCE->isKeyPressed( DIK_HOME ) )
-		{
-			m_fLoadingTime = 0;
-			m_bIncrease = false;
-		}
-		if ( m_ClippingPlane.w >= 1.1f || m_ClippingPlane.w <= -1.1f )
-			delta *= -1;
-		m_ClippingPlane.w += 0.5f * fFrameTime * delta;
-		static float Rotation = 0.0f;
-		if ( Rotation >= 2 * FLOAT_PI )
-			Rotation = 0.0f;
-		Rotation += 0.125f * fFrameTime;
-		m_Triangle->Identity( );
-		m_Triangle->RotateY( Rotation );
-		m_Model->Identity( );
-		m_Model->Translate( 0.0f, 0.0f, 3.0f );
-		m_Model->RotateY( 4 * Rotation );
-		m_Floor->Identity( );
-		m_Floor->Translate( 0.0f, -1.5f, 0.0f );
-	}
+	static int index = 0;
 	if (RenderMenu)
 	{
 		char buffer[500] = { 0 };
@@ -159,8 +114,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 			m_Cheat->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, ( float ) m_WindowHeight - 17.0f );
 		}
 		index = 0;
-		for ( int i = 0; i < 4; ++i )
-			MousePosition[ i ] = '0';
+		memset( MousePosition, ( int )'0', sizeof( char ) * 4 );
 		while ( MouseX && index < 4 )
 		{
 			MousePosition[ 3 - index++ ] = MouseX % 10 + '0';
@@ -168,8 +122,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 		}
 		sprintf_s( buffer, "Cursor Position X: %s", MousePosition );
 		m_CursorX->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
-		for ( int i = 0; i < 4; ++i )
-			MousePosition[ i ] = '0';
+		memset( MousePosition, ( int )'0', sizeof( char ) * 4 );
 		index = 0;
 		while ( MouseY && index < 4 )
 		{
@@ -195,121 +148,9 @@ void CGraphics::Frame( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTim
 void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY )
 {
 	m_RenderCount = 0;
-	m_d3d->DisableCulling();
 	m_Camera->Render();
-	m_Camera->RenderReflection( -1.5f );
-	m_Up->Render();
-
-	if ( m_fLoadingTime < m_fStartLoadingTime )
-		m_FaddingShader->SetFadeAmount( m_d3d->GetImmediateContext( ), m_fFadeAmount );
-
-	m_TextureRenderer->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
-	m_TextureRenderer->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::Color( 0.0f, 0.0f, 0.0f, 0.0f ) );
-
-	/*m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
-		m_Floor->GetTexture( ),
-		m_Floor->GetWorld( ), m_Up->GetView( ), m_Up->GetProjection( ) );*/
-
-	if ( m_fLoadingTime < m_fStartLoadingTime )
-	{
-		m_Triangle->Render( m_d3d->GetImmediateContext( ) );
-		m_FaddingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
-			m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
-			m_Triangle->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-
-		m_Model->Render( m_d3d->GetImmediateContext( ) );
-		m_FaddingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
-			m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
-			m_Model->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-	}
-
-	else
-	{
-		m_Triangle->Render( m_d3d->GetImmediateContext( ) );
-		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
-			m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
-			m_Triangle->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-
-		m_Model->Render( m_d3d->GetImmediateContext( ) );
-		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
-			m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
-			m_Model->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-	}
-
-	m_d3d->EnableBackBuffer( );
-	m_d3d->BeginScene();
-
-	if ( m_fLoadingTime < m_fStartLoadingTime )
-	{
-		m_Triangle->Render( m_d3d->GetImmediateContext( ) );
-		m_FaddingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
-			m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
-			m_Triangle->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-		m_RenderCount++;
-
-		m_Model->Render( m_d3d->GetImmediateContext( ) );
-		m_FaddingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
-			m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
-			m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-		m_RenderCount++;
-	}
-
-	else
-	{
-		m_Triangle->Render( m_d3d->GetImmediateContext( ) );
-		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
-			m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
-			m_Triangle->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-		m_RenderCount++;
-
-		m_Model->Render( m_d3d->GetImmediateContext( ) );
-		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
-			m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
-			m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light );
-		m_RenderCount++;
-	}
-	
-	/*DirectX::XMVECTOR coord = DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 0.0f );
-	coord = DirectX::XMVector3TransformCoord( coord, m_Triangle->GetWorld() );
-	if (m_Camera->isCubeinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
-	{
-		m_Triangle->Render( m_d3d->GetImmediateContext() );
-		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Triangle->GetIndexCount( ),
-			m_Triangle->GetTexture( ), m_Triangle->GetBumpMap( ), m_Triangle->GetSpecularMap( ),
-			m_Triangle->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light, m_ClippingPlane );
-		m_RenderCount++;
-	}
-
-	coord = DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 0.0f );
-	coord = DirectX::XMVector3TransformCoord( coord, m_Model->GetWorld() );
-	if (m_Camera->isSphereinFrustum( 1.0f, DirectX::XMVectorGetX( coord ), DirectX::XMVectorGetY( coord ), DirectX::XMVectorGetZ( coord ) ))
-	{
-		m_Model->Render( m_d3d->GetImmediateContext() );
-		m_NoPlaneClippingShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ),
-			m_Model->GetTexture( ), m_Model->GetBumpMap( ), m_Model->GetSpecularMap( ),
-			m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ),
-			Light, m_ClippingPlane );
-		m_RenderCount++;
-	}*/
-
-	m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_ReflectionShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
-		m_Floor->GetTexture( ), m_TextureRenderer->GetTexture( ),
-		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
-		m_Camera->GetReflectView( ) );
-	/*m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
-		m_TextureRenderer->GetTexture( ), m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );*/
-	m_RenderCount++;
+	m_d3d->BeginScene( );
+	m_d3d->DisableCulling( );
 
 	if (RenderMenu)
 	{
@@ -403,23 +244,11 @@ void CGraphics::Shutdown()
 
 	delete Light;
 
-	m_Up->Shutdown();
-	delete m_Up;
-	
 	m_Camera->Shutdown();
 	delete m_Camera;
 	
 	m_Cursor->Shutdown();
 	delete m_Cursor;
-
-	m_Model->Shutdown();
-	delete m_Model;
-
-	m_Triangle->Shutdown();
-	delete m_Triangle;
-
-	m_Floor->Shutdown( );
-	delete m_Floor;
 	
 	m_d3d->Shutdown();
 	delete m_d3d;

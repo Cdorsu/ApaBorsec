@@ -20,9 +20,6 @@
 class CGraphics sealed
 {
 	D3DClass *m_d3d;
-	CModel *m_Triangle;
-	CModel *m_Model;
-	CModel *m_Floor;
 	BitmapClass *m_Cursor;
 	CSimpleShader *m_NoPlaneClippingShader;
 	CSimpleShader *m_PlaneClippingShader;
@@ -34,7 +31,6 @@ class CGraphics sealed
 	CReflectionShader *m_ReflectionShader;
 	CTextureShader *m_TextureShader;
 	CCamera *m_Camera;
-	CCamera *m_Up;
 	CLight *Light;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
