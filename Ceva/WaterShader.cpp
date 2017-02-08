@@ -1,17 +1,17 @@
-#include "TextureShader.h"
+#include "WaterShader.h"
 
 
 
-CTextureShader::CTextureShader( )
+CWaterShader::CWaterShader( )
 {
-	ZeroMemory( this, sizeof( CTextureShader ) );
+	ZeroMemory( this, sizeof( CWaterShader ) );
 }
 
-bool CTextureShader::Initialize( ID3D11Device * device )
+bool CWaterShader::Initialize( ID3D11Device * device )
 {
 	ID3D10Blob *ShaderBlob = nullptr, *ErrorBlob = nullptr;
 	HRESULT hr = S_OK;
-	hr = D3DX11CompileFromFile( L"TextureVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"WaterVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ShaderBlob )
@@ -51,7 +51,7 @@ bool CTextureShader::Initialize( ID3D11Device * device )
 	if ( FAILED( hr ) )
 		return false;
 	SafeRelease( ShaderBlob );
-	hr = D3DX11CompileFromFile( L"TexturePixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"WaterPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ShaderBlob )
@@ -73,8 +73,10 @@ bool CTextureShader::Initialize( ID3D11Device * device )
 	hr = device->CreateBuffer( &buffDesc, NULL, &ConstantBuffer );
 	if ( FAILED( hr ) )
 		return false;
-	buffDesc.ByteWidth = sizeof( SLight );
-	hr = device->CreateBuffer( &buffDesc, NULL, &LightBuffer );
+	buffDesc.ByteWidth = sizeof( SWater );
+	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
+	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
+	hr = device->CreateBuffer( &buffDesc, NULL, &WaterBuffer );
 	if ( FAILED( hr ) )
 		return false;
 	D3D11_SAMPLER_DESC sampDesc;
@@ -96,10 +98,11 @@ bool CTextureShader::Initialize( ID3D11Device * device )
 	return true;
 }
 
-void CTextureShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
-	ID3D11ShaderResourceView * Texture,
+void CWaterShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
+	ID3D11ShaderResourceView * ReflectionView, ID3D11ShaderResourceView * RefractionView,
+	ID3D11ShaderResourceView * TextureView, DirectX::XMMATRIX& Reflection,
 	DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-	CLight *light, DirectX::XMFLOAT4 clipPlane )
+	float textureTranslation, float reflectRefractScale )
 {
 	using namespace DirectX;
 	static HRESULT hr;
@@ -112,25 +115,27 @@ void CTextureShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount
 	hr = context->Map( ConstantBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
 		return;
-	( ( SConstantBuffer* ) MappedResource.pData )->WVP = XMMatrixTranspose( WVP );
 	( ( SConstantBuffer* ) MappedResource.pData )->World = XMMatrixTranspose( World );
-	( ( SConstantBuffer* ) MappedResource.pData )->ClipPlane = clipPlane;
+	( ( SConstantBuffer* ) MappedResource.pData )->View = XMMatrixTranspose( View );
+	( ( SConstantBuffer* ) MappedResource.pData )->Projection = XMMatrixTranspose( Projection );
+	( ( SConstantBuffer* ) MappedResource.pData )->Reflection = XMMatrixTranspose( Reflection );
 	context->Unmap( ConstantBuffer, 0 );
-	hr = context->Map( LightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	hr = context->Map( WaterBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
 		return;
-	( ( SLight* ) MappedResource.pData )->Dir = light->GetDirection( );
-	( ( SLight* ) MappedResource.pData )->Ambient = light->GetAmbientColor( );
-	( ( SLight* ) MappedResource.pData )->Diffuse = light->GetDiffuseColor( );
-	context->Unmap( LightBuffer, 0 );
+	( ( SWater* ) MappedResource.pData )->textureTranslation = textureTranslation;
+	( ( SWater* ) MappedResource.pData )->reflectionRefractionScale = reflectRefractScale;
+	context->Unmap( WaterBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
-	context->PSSetConstantBuffers( 0, 1, &LightBuffer );
+	context->PSSetConstantBuffers( 0, 1, &WaterBuffer );
 	context->PSSetSamplers( 0, 1, &Sampler );
-	context->PSSetShaderResources( 0, 1, &Texture );
+	context->PSSetShaderResources( 0, 1, &TextureView );
+	context->PSSetShaderResources( 1, 1, &ReflectionView );
+	context->PSSetShaderResources( 2, 1, &RefractionView );
 	context->DrawIndexed( IndexDrawAmount, 0, 0 );
 }
 
-void CTextureShader::OutputShaderError( ID3D10Blob * Error )
+void CWaterShader::OutputShaderError( ID3D10Blob * Error )
 {
 	std::ofstream ofs( "ShaderError.txt" );
 	UINT Size = ( UINT ) Error->GetBufferSize( );
@@ -140,17 +145,17 @@ void CTextureShader::OutputShaderError( ID3D10Blob * Error )
 	ofs.close( );
 }
 
-void CTextureShader::Shutdown( )
+void CWaterShader::Shutdown( )
 {
 	SafeRelease( VertexShader );
 	SafeRelease( PixelShader );
 	SafeRelease( InputLayout );
 	SafeRelease( ConstantBuffer );
-	SafeRelease( LightBuffer );
+	SafeRelease( WaterBuffer );
 	SafeRelease( Sampler );
 }
 
-CTextureShader::~CTextureShader( )
+CWaterShader::~CWaterShader( )
 {
 	Shutdown( );
 }

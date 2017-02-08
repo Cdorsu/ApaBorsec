@@ -7,6 +7,7 @@
 #include "Model.h"
 #include "SimpleShader.h"
 #include "ReflectionShader.h"
+#include "WaterShader.h"
 #include "Camera.h"
 #include "Light.h"
 #include "C2DShader.h"
@@ -30,7 +31,12 @@ class CGraphics sealed
 	CFogShader *m_ExponentialFogShader2;
 	CReflectionShader *m_ReflectionShader;
 	CTextureShader *m_TextureShader;
+	CWaterShader *m_WaterShader;
 	CCamera *m_Camera;
+	CModel *m_Bath;
+	CModel *m_Wall;
+	CModel *m_Ground;
+	CModel *m_Water;
 	CLight *Light;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
@@ -38,7 +44,8 @@ class CGraphics sealed
 	CSentence *m_CursorX;
 	CSentence *m_CursorY;
 	BitmapClass *m_RenderTexture;
-	CRenderTexture *m_TextureRenderer;
+	CRenderTexture *m_RefractionTexture;
+	CRenderTexture *m_ReflectionTexture;
 	DirectX::XMFLOAT4 m_ClippingPlane;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
@@ -47,6 +54,8 @@ class CGraphics sealed
 	float m_fLoadingTime;
 	float m_fFadeAmount;
 	bool m_bIncrease;
+	float m_fWaterHeight;
+	float m_fWaterTranslation;
 public:
 	CGraphics();
 	~CGraphics();

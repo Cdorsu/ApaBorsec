@@ -17,6 +17,7 @@ __declspec (align(16)) class CCamera
 	DirectX::XMMATRIX camView;
 	DirectX::XMMATRIX camProjection;
 	DirectX::XMMATRIX camReflectView;
+	DirectX::XMMATRIX camRefractView;
 	std::vector<DirectX::XMFLOAT4> camFrustum;
 	float camSpeed;
 	float camYaw = 0.0f;
@@ -29,7 +30,8 @@ public:
 	bool Initialize( DirectX::XMVECTOR& InitialPos, float FOV, float AspectRatio, float NearZ, float FarZ, float cameraSpeed );
 	void Render();
 	void RenderReflection( float height );
-	void Update(float FrameTime);
+	void RenderRefraction( float refraction );
+	void Update( float FrameTime );
 	bool isPointinFrustum( float x, float y, float z );
 	bool isCubeinFrustum( float sortofradius, float x, float y, float z );
 	bool isPlaneinFrustum( DirectX::XMFLOAT3 point1,
@@ -45,6 +47,7 @@ public:
 	inline DirectX::XMMATRIX GetView() { return camView; };
 	inline DirectX::XMMATRIX GetProjection() { return camProjection; };
 	inline DirectX::XMMATRIX GetReflectView( ) { return camReflectView; };
+	inline DirectX::XMMATRIX GetRefractView( ) { return camRefractView; };
 	inline DirectX::XMVECTOR GetCameraDirection( ) { return camForward; };
 	inline DirectX::XMVECTOR GetCamPos( ) { return camPos; };
 	inline DirectX::XMFLOAT3 GetCameraPosition() { DirectX::XMFLOAT3 ret; DirectX::XMStoreFloat3( &ret, camPos ); return ret; };

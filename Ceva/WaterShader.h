@@ -12,38 +12,39 @@
 
 #include "Light.h"
 
-class CTextureShader
+class CWaterShader
 {
 private:
 	struct SConstantBuffer
 	{
-		DirectX::XMMATRIX WVP;
 		DirectX::XMMATRIX World;
-		DirectX::XMFLOAT4 ClipPlane;
+		DirectX::XMMATRIX View;
+		DirectX::XMMATRIX Projection;
+		DirectX::XMMATRIX Reflection;
 	};
-	struct SLight
+	struct SWater
 	{
-		common::Color Diffuse;
-		common::Color Ambient;
-		DirectX::XMFLOAT3 Dir;
-		float pad;
+		float textureTranslation;
+		float reflectionRefractionScale;
+		DirectX::XMFLOAT2 pad;
 	};
 private:
 	ID3D11VertexShader *VertexShader;
 	ID3D11PixelShader *PixelShader;
 	ID3D11InputLayout *InputLayout;
 	ID3D11Buffer *ConstantBuffer;
-	ID3D11Buffer *LightBuffer;
+	ID3D11Buffer *WaterBuffer;
 	ID3D11SamplerState *Sampler;
 public:
-	CTextureShader( );
-	~CTextureShader( );
+	CWaterShader( );
+	~CWaterShader( );
 public:
 	bool Initialize( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
-		ID3D11ShaderResourceView * Texture,
+		ID3D11ShaderResourceView * ReflectionView, ID3D11ShaderResourceView * RefractionView,
+		ID3D11ShaderResourceView * TextureView, DirectX::XMMATRIX& Reflection,
 		DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-		CLight* Light, DirectX::XMFLOAT4 clipPlane = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+		float textureTranslation, float reflectRefractScale );
 	void Shutdown( );
 private:
 	void OutputShaderError( ID3D10Blob * Error );

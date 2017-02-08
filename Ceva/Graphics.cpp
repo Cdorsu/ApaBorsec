@@ -20,6 +20,18 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_RenderTexture = new BitmapClass();
 	if (!m_RenderTexture->Initialize( m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, WindowWidth / 10, WindowHeight / 10 ))
 		return false;
+	m_Wall = new CModel( );
+	if ( !m_Wall->Initialize( m_d3d->GetDevice( ), L"data\\wall.txt", L"data\\wall01.dds" ) )
+		return false;
+	m_Ground = new CModel( );
+	if ( !m_Ground->Initialize( m_d3d->GetDevice( ), L"data\\ground.txt", L"data\\ground01.dds" ) )
+		return false;
+	m_Bath = new CModel( );
+	if ( !m_Bath->Initialize( m_d3d->GetDevice( ), L"data\\bath.txt", L"data\\marble01.dds" ) )
+		return false;
+	m_Water = new CModel( );
+	if ( !m_Water->Initialize( m_d3d->GetDevice( ), L"data\\water.txt", L"data\\water01.dds" ) )
+		return false;
 	m_NoPlaneClippingShader = new CSimpleShader();
 	if (!m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice() ))
 		return false;
@@ -43,6 +55,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		return false;
 	m_ReflectionShader = new CReflectionShader( );
 	if ( !m_ReflectionShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
+	m_WaterShader = new CWaterShader( );
+	if ( !m_WaterShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
 	m_2DShader = new C2DShader();
 	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
@@ -71,16 +86,22 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_FrameTimeMessage = new CSentence();
 	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
 		return false;
-	m_TextureRenderer = new CRenderTexture();
-	if (!m_TextureRenderer->Initialize( m_d3d->GetDevice(), WindowWidth, WindowHeight ))
+	m_RefractionTexture = new CRenderTexture();
+	if (!m_RefractionTexture->Initialize( m_d3d->GetDevice(), WindowWidth, WindowHeight ))
+		return false;
+	m_ReflectionTexture = new CRenderTexture( );
+	if ( !m_ReflectionTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight ) )
 		return false;
 	m_ClippingPlane = DirectX::XMFLOAT4( 0.0f, 1.0f, 0.0f, 0.0f );
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	Light->SetDiffuseColor( common::HexToRGB( 0xFFFFFF ) );
-	Light->SetDirection( DirectX::XMFLOAT3( 0.0f, 0.0f, 1.0f ) );
+	Light->SetDirection( DirectX::XMFLOAT3( 0.0f, -1.0f, 0.5f ) );
 	Light->SetSpecularPower( 32.0f );
+
+	m_fWaterHeight = 0.75f;
+	m_fWaterTranslation = 0.0f;
 
 
 	m_fStartLoadingTime = 5;
@@ -93,6 +114,19 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 {
 	static char MousePosition[ 4 ];
 	static int index = 0;
+	static float delta = 1.0f;
+	m_fWaterTranslation += 0.125f * fFrameTime * delta;
+	if ( m_fWaterTranslation > 1.0f || m_fWaterTranslation < 0.0f )
+		//delta *= -1;
+		m_fWaterTranslation = 0.0f;
+	m_Bath->Identity( );
+	//m_Bath->Translate( 0.0f, 0.0f, 0.0f );
+	m_Wall->Identity( );
+	m_Wall->Translate( 0.0f, 4.0f, 8.0f );
+	m_Ground->Identity( );
+	m_Ground->Translate( 0.0f, -1.0f, 0.0f );
+	m_Water->Identity( );
+	m_Water->Translate( 0.0f, m_fWaterHeight, 0.0f );
 	if (RenderMenu)
 	{
 		char buffer[500] = { 0 };
@@ -149,8 +183,43 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 {
 	m_RenderCount = 0;
 	m_Camera->Render();
-	m_d3d->BeginScene( );
+	m_Camera->RenderReflection( m_fWaterHeight );
 	m_d3d->DisableCulling( );
+
+	m_RefractionTexture->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
+	m_RefractionTexture->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::HexToRGB( 0x000000 ) );
+
+	m_Bath->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Bath->GetIndexCount( ), m_Bath->GetTexture( ),
+		m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light,
+		DirectX::XMFLOAT4( 0.0f, -1.0f, 0.0f, m_fWaterHeight ) );
+
+	m_ReflectionTexture->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
+	m_ReflectionTexture->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::HexToRGB( 0x000000 ) );
+
+	m_Wall->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
+		m_Wall->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), Light );
+
+	m_d3d->EnableBackBuffer( );
+	m_d3d->BeginScene( );
+	
+	m_Wall->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
+		m_Wall->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light );
+
+	m_Ground->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetTexture( ),
+		m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light );
+
+	m_Bath->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Bath->GetIndexCount( ), m_Bath->GetTexture( ),
+		m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light );
+
+	m_Water->Render( m_d3d->GetImmediateContext( ) );
+	m_WaterShader->Render( m_d3d->GetImmediateContext( ), m_Water->GetIndexCount( ), m_ReflectionTexture->GetTexture( ),
+		m_RefractionTexture->GetTexture( ), m_Water->GetTexture( ), m_Camera->GetReflectView( ), m_Water->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_fWaterTranslation, 0.03f );
 
 	if (RenderMenu)
 	{
@@ -194,8 +263,11 @@ void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
 
-	m_TextureRenderer->Shutdown();
+	m_RefractionTexture->Shutdown();
 	delete m_RenderTexture;
+
+	m_ReflectionTexture->Shutdown( );
+	delete m_ReflectionTexture;
 
 	m_RenderTexture->Shutdown();
 	delete m_RenderTexture;
@@ -230,6 +302,9 @@ void CGraphics::Shutdown()
 	m_ReflectionShader->Shutdown( );
 	delete m_ReflectionShader;
 
+	m_WaterShader->Shutdown( );
+	delete m_WaterShader;
+
 	m_TextureShader->Shutdown( );
 	delete m_TextureShader;
 
@@ -243,6 +318,18 @@ void CGraphics::Shutdown()
 	delete m_ExponentialFogShader2;
 
 	delete Light;
+
+	m_Ground->Shutdown( );
+	delete m_Ground;
+
+	m_Bath->Shutdown( );
+	delete m_Bath;
+	
+	m_Wall->Shutdown( );
+	delete m_Wall;
+
+	m_Water->Shutdown( );
+	delete m_Water;
 
 	m_Camera->Shutdown();
 	delete m_Camera;
