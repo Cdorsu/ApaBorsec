@@ -1,17 +1,17 @@
-#include "ReflectionShader.h"
+#include "GlassShader.h"
 
 
 
-CReflectionShader::CReflectionShader( )
+CGlassShader::CGlassShader( )
 {
-	ZeroMemory( this, sizeof( CReflectionShader ) );
+	ZeroMemory( this, sizeof( CGlassShader ) );
 }
 
-bool CReflectionShader::Initialize( ID3D11Device * device )
+bool CGlassShader::Initialize( ID3D11Device * device )
 {
 	ID3D10Blob *ShaderBlob = nullptr, *ErrorBlob = nullptr;
 	HRESULT hr = S_OK;
-	hr = D3DX11CompileFromFile( L"ReflectionVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"GlassVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ShaderBlob )
@@ -44,7 +44,7 @@ bool CReflectionShader::Initialize( ID3D11Device * device )
 	if ( FAILED( hr ) )
 		return false;
 	SafeRelease( ShaderBlob );
-	hr = D3DX11CompileFromFile( L"ReflectionPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"GlassPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ShaderBlob )
@@ -66,6 +66,10 @@ bool CReflectionShader::Initialize( ID3D11Device * device )
 	hr = device->CreateBuffer( &buffDesc, NULL, &ConstantBuffer );
 	if ( FAILED( hr ) )
 		return false;
+	buffDesc.ByteWidth = sizeof( SGlass );
+	hr = device->CreateBuffer( &buffDesc, NULL, &GlassBuffer );
+	if ( FAILED( hr ) )
+		return false;
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory( &sampDesc, sizeof( sampDesc ) );
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
@@ -85,14 +89,16 @@ bool CReflectionShader::Initialize( ID3D11Device * device )
 	return true;
 }
 
-void CReflectionShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
-	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Reflection,
+void CGlassShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
+	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Refraction,
+	ID3D11ShaderResourceView * Bumpmap,
 	DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-	DirectX::XMMATRIX& ReflectionView )
+	float refractionScale)
 {
 	using namespace DirectX;
 	static HRESULT hr;
 	static XMMATRIX WVP;
+	static XMMATRIX RPW;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	context->IASetInputLayout( InputLayout );
 	context->VSSetShader( VertexShader, nullptr, 0 );
@@ -103,21 +109,27 @@ void CReflectionShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmo
 	if ( FAILED( hr ) )
 		return;
 	//( ( SConstantBuffer* ) MappedResource.pData )->WVP = XMMatrixTranspose( WVP );
-	( ( SConstantBuffer* ) MappedResource.pData )->WVP = XMMatrixTranspose( WVP );
+	( ( SConstantBuffer* ) MappedResource.pData )->World = XMMatrixTranspose( WVP );
 	( ( SConstantBuffer* ) MappedResource.pData )->World = XMMatrixTranspose( World );
 	( ( SConstantBuffer* ) MappedResource.pData )->Projection = XMMatrixTranspose( Projection );
 	( ( SConstantBuffer* ) MappedResource.pData )->View = XMMatrixTranspose( View );
-	( ( SConstantBuffer* ) MappedResource.pData )->ReflectView = XMMatrixTranspose( ReflectionView );
 	//( ( SConstantBuffer* ) MappedResource.pData )->RPW = XMMatrixTranspose( RPW );
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
+	hr = context->Map( GlassBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	if ( FAILED( hr ) )
+		return;
+	( ( SGlass* ) MappedResource.pData )->refractionScale = refractionScale;
+	context->Unmap( GlassBuffer, 0 );
+	context->PSSetConstantBuffers( 0, 1, &GlassBuffer );
 	context->PSSetSamplers( 0, 1, &Sampler );
 	context->PSSetShaderResources( 0, 1, &Texture );
-	context->PSSetShaderResources( 1, 1, &Reflection );
+	context->PSSetShaderResources( 1, 1, &Bumpmap );
+	context->PSSetShaderResources( 2, 1, &Refraction );
 	context->DrawIndexed( IndexDrawAmount, 0, 0 );
 }
 
-void CReflectionShader::OutputShaderError( ID3D10Blob * Error )
+void CGlassShader::OutputShaderError( ID3D10Blob * Error )
 {
 	std::ofstream ofs( "ShaderError.txt" );
 	UINT Size = ( UINT ) Error->GetBufferSize( );
@@ -127,16 +139,17 @@ void CReflectionShader::OutputShaderError( ID3D10Blob * Error )
 	ofs.close( );
 }
 
-void CReflectionShader::Shutdown( )
+void CGlassShader::Shutdown( )
 {
 	SafeRelease( VertexShader );
 	SafeRelease( PixelShader );
 	SafeRelease( InputLayout );
 	SafeRelease( ConstantBuffer );
+	SafeRelease( GlassBuffer );
 	SafeRelease( Sampler );
 }
 
-CReflectionShader::~CReflectionShader( )
+CGlassShader::~CGlassShader( )
 {
 	Shutdown( );
 }

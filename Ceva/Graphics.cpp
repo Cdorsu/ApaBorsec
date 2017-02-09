@@ -26,6 +26,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Bath = new CModel( );
 	if ( !m_Bath->Initialize( m_d3d->GetDevice( ), L"data\\bath.txt", L"data\\marble01.dds" ) )
 		return false;
+	m_Glass = new CModel( );
+	if ( !m_Glass->Initialize( m_d3d->GetDevice( ), L"data\\square.txt", L"data\\ice01.dds", L"data\\icebump01.dds" ) )
+		return false;
 	m_Water = new CModel( );
 	if ( !m_Water->Initialize( m_d3d->GetDevice( ), L"data\\water.txt", L"data\\water01.dds" ) )
 		return false;
@@ -53,6 +56,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_ReflectionShader = new CReflectionShader( );
 	if ( !m_ReflectionShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
+	m_GlassShader = new CGlassShader( );
+	if ( !m_GlassShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_WaterShader = new CWaterShader( );
 	if ( !m_WaterShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
@@ -61,7 +67,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
-		0.5f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ))
+		0.2f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ))
 		return false;
 	if (!FontClass::Initialize( m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt" ))
 		return false;
@@ -81,6 +87,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_ReflectionTexture = new CRenderTexture( );
 	if ( !m_ReflectionTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight ) )
 		return false;
+	m_GlassRefraction = new CRenderTexture( );
+	if ( !m_GlassRefraction->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight ) )
+		return false;
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -92,7 +101,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	PointLight->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, -10.0f ) );
 	PointLight->SetDiffuseColor( common::HexToRGB( 0x0000FF ) );
 	PointLight->SetAttenuation( 0.0f, 0.2f, 0.0f );
-	PointLight->SetRange( 1000.0f );
+	PointLight->SetRange( 0.0f ); // disable point light
 
 	m_fWaterHeight = 0.75f;
 	m_fWaterTranslation = 0.0f;
@@ -109,7 +118,9 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	m_fWaterTranslation += 0.125f * fFrameTime;
 	if ( m_fWaterTranslation > 1.0f )
 		m_fWaterTranslation = 0.0f;
-	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
+	//PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
+	m_Glass->Identity( );
+	m_Glass->Translate( 0.0f, 2.0f, -9.0f );
 	m_Bath->Identity( );
 	//m_Bath->Translate( 0.0f, 0.0f, 0.0f );
 	m_Wall->Identity( );
@@ -154,6 +165,7 @@ void CGraphics::Frame( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTim
 
 void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY )
 {
+	bool RenderGlass = false;
 	m_RenderCount = 0;
 	m_Camera->Render();
 	m_Camera->RenderReflection( m_fWaterHeight );
@@ -174,6 +186,30 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
 		m_Wall->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), Light, PointLight);
 
+	if ( m_Camera->isCubeinFrustum( 1.0f, DirectX::XMVectorGetX( m_Glass->getMiddlePoint( ) ),
+		DirectX::XMVectorGetY( m_Glass->getMiddlePoint( ) ), DirectX::XMVectorGetZ( m_Glass->getMiddlePoint( ) ) ) )
+	{
+		m_GlassRefraction->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
+		m_GlassRefraction->BeginScene( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ), common::HexToRGB( 0x0 ) );
+
+		m_Wall->Render( m_d3d->GetImmediateContext( ) );
+		m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
+			m_Wall->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+
+		m_Ground->Render( m_d3d->GetImmediateContext( ) );
+		m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetTexture( ),
+			m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+
+		m_Bath->Render( m_d3d->GetImmediateContext( ) );
+		m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Bath->GetIndexCount( ), m_Bath->GetTexture( ),
+			m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+
+		m_Water->Render( m_d3d->GetImmediateContext( ) );
+		m_WaterShader->Render( m_d3d->GetImmediateContext( ), m_Water->GetIndexCount( ), m_ReflectionTexture->GetTexture( ),
+			m_RefractionTexture->GetTexture( ), m_Water->GetTexture( ), m_Camera->GetReflectView( ), m_Water->GetWorld( ),
+			m_Camera->GetView( ), m_Camera->GetProjection( ), m_fWaterTranslation, 0.03f );
+		RenderGlass = true;
+	}
 	m_d3d->EnableBackBuffer( );
 	m_d3d->BeginScene( );
 	
@@ -188,6 +224,17 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Bath->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Bath->GetIndexCount( ), m_Bath->GetTexture( ),
 		m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+
+	m_Glass->Render( m_d3d->GetImmediateContext( ) );
+	if ( RenderGlass )
+		/*m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Glass->GetIndexCount( ), m_GlassRefraction->GetTexture( ),
+			m_Glass->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );*/
+		m_GlassShader->Render( m_d3d->GetImmediateContext( ), m_Glass->GetIndexCount( ), m_Glass->GetTexture( ),
+			m_GlassRefraction->GetTexture( ), m_Glass->GetBumpMap( ), m_Glass->GetWorld( ), m_Camera->GetView( ),
+			m_Camera->GetProjection( ), 0.1f );
+	else
+		m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Glass->GetIndexCount( ), m_Glass->GetTexture( ),
+			m_Glass->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
 	m_Water->Render( m_d3d->GetImmediateContext( ) );
 	m_WaterShader->Render( m_d3d->GetImmediateContext( ), m_Water->GetIndexCount( ), m_ReflectionTexture->GetTexture( ),
@@ -234,6 +281,9 @@ void CGraphics::Shutdown()
 	m_ReflectionTexture->Shutdown( );
 	delete m_ReflectionTexture;
 
+	m_GlassRefraction->Shutdown( );
+	delete m_GlassRefraction;
+
 	m_Cheat->Shutdown();
 	delete m_Cheat;
 
@@ -261,6 +311,9 @@ void CGraphics::Shutdown()
 	m_WaterShader->Shutdown( );
 	delete m_WaterShader;
 
+	m_GlassShader->Shutdown( );
+	delete m_GlassShader;
+
 	m_TextureShader->Shutdown( );
 	delete m_TextureShader;
 
@@ -286,6 +339,9 @@ void CGraphics::Shutdown()
 
 	m_Water->Shutdown( );
 	delete m_Water;
+
+	m_Glass->Shutdown( );
+	delete m_Glass;
 
 	m_Camera->Shutdown();
 	delete m_Camera;

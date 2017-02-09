@@ -78,6 +78,9 @@
     <ClCompile Include="WaterShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GlassShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DClass.h">
@@ -149,6 +152,9 @@
     <ClInclude Include="PointLight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GlassShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -197,6 +203,12 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="WaterVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="GlassVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="GlassPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

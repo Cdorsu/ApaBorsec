@@ -127,6 +127,7 @@
     <ClCompile Include="commonmath.cpp" />
     <ClCompile Include="FogShader.cpp" />
     <ClCompile Include="FontClass.cpp" />
+    <ClCompile Include="GlassShader.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="ReflectionShader.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="commonmath.h" />
     <ClInclude Include="FogShader.h" />
     <ClInclude Include="FontClass.h" />
+    <ClInclude Include="GlassShader.h" />
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
@@ -203,6 +205,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="GlassPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="GlassVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="LinearFogVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>

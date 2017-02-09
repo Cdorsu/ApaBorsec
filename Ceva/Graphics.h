@@ -8,6 +8,7 @@
 #include "SimpleShader.h"
 #include "ReflectionShader.h"
 #include "WaterShader.h"
+#include "GlassShader.h"
 #include "Camera.h"
 #include "Light.h"
 #include "PointLight.h"
@@ -33,11 +34,13 @@ class CGraphics sealed
 	CReflectionShader *m_ReflectionShader;
 	CTextureShader *m_TextureShader;
 	CWaterShader *m_WaterShader;
+	CGlassShader *m_GlassShader;
 	CCamera *m_Camera;
 	CModel *m_Bath;
 	CModel *m_Wall;
 	CModel *m_Ground;
 	CModel *m_Water;
+	CModel *m_Glass;
 	CLight *Light;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
@@ -45,6 +48,7 @@ class CGraphics sealed
 	CSentence *m_Cheat;
 	CRenderTexture *m_RefractionTexture;
 	CRenderTexture *m_ReflectionTexture;
+	CRenderTexture *m_GlassRefraction;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	UINT m_RenderCount;

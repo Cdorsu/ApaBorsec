@@ -57,7 +57,7 @@ float4 main( PSIn input ) : SV_TARGET
     float3 lightToPixelVec = Point.Position - input.worldPos;
     float size = length( lightToPixelVec );
     if ( size > Point.Range )
-        return float4( 0.0f, 0.0f, 0.0f, 0.0f );
+        return textureColor * color;
 
     lightToPixelVec /= size;
     howMuchLight = dot( lightToPixelVec, input.Normal );
