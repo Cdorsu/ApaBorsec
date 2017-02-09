@@ -1,1 +1,1 @@
-Video card: Intel(R) HD Graphics 4600 with 1066 megabytes of dedicated video memory
+Video card: NVIDIA GeForce 9400 GT  with 490 megabytes of dedicated video memory

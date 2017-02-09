@@ -53,6 +53,7 @@ public:
 	inline ID3D11ShaderResourceView* GetTexture() { return Texture->GetTexture(); };
 	inline ID3D11ShaderResourceView* GetBumpMap() { return BumpMap->GetTexture(); };
 	inline ID3D11ShaderResourceView* GetSpecularMap() { return SpecularMap->GetTexture(); };
+	inline void Scale( float x, float y, float z ) { World *= DirectX::XMMatrixScaling( x, y, z ); };
 	inline void Translate( float x, float y, float z ) { World *= DirectX::XMMatrixTranslation( x, y, z ); };
 	inline void RotateX( float Angle ) { World *= DirectX::XMMatrixRotationX( Angle ); };
 	inline void RotateY( float Angle ) { World *= DirectX::XMMatrixRotationY( Angle ); };

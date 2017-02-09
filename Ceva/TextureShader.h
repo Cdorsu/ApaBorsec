@@ -11,6 +11,7 @@
 #include <D3Dcompiler.h>
 
 #include "Light.h"
+#include "PointLight.h"
 
 class CTextureShader
 {
@@ -28,12 +29,21 @@ private:
 		DirectX::XMFLOAT3 Dir;
 		float pad;
 	};
+	struct SPointLight
+	{
+		DirectX::XMFLOAT3 Position;
+		float pad;
+		common::Color Diffuse;
+		DirectX::XMFLOAT3 Attenuation;
+		float Range;
+	};
 private:
 	ID3D11VertexShader *VertexShader;
 	ID3D11PixelShader *PixelShader;
 	ID3D11InputLayout *InputLayout;
 	ID3D11Buffer *ConstantBuffer;
 	ID3D11Buffer *LightBuffer;
+	ID3D11Buffer *PointLightBuffer;
 	ID3D11SamplerState *Sampler;
 public:
 	CTextureShader( );
@@ -43,7 +53,7 @@ public:
 	void Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 		ID3D11ShaderResourceView * Texture,
 		DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-		CLight* Light, DirectX::XMFLOAT4 clipPlane = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+		CLight* Light, CPointLight* PointLight, DirectX::XMFLOAT4 clipPlane = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 	void Shutdown( );
 private:
 	void OutputShaderError( ID3D10Blob * Error );

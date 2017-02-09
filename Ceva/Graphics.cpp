@@ -17,9 +17,6 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Cursor = new BitmapClass();
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
 		return false;
-	m_RenderTexture = new BitmapClass();
-	if (!m_RenderTexture->Initialize( m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, WindowWidth / 10, WindowHeight / 10 ))
-		return false;
 	m_Wall = new CModel( );
 	if ( !m_Wall->Initialize( m_d3d->GetDevice( ), L"data\\wall.txt", L"data\\wall01.dds" ) )
 		return false;
@@ -72,14 +69,6 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if ( !m_Cheat->Initialize( m_d3d->GetDevice( ), "Here is a veeeery long string. Here will be wrote possible cheats",
 		WindowWidth, WindowHeight, 1.0f, ( float ) WindowHeight - 17.0f ) )
 		return false;
-	m_CursorX = new CSentence( );
-	if ( !m_CursorX->Initialize( m_d3d->GetDevice( ), "Cursor position X: 00000", WindowWidth, WindowHeight,
-		WindowWidth - 150.0f, WindowHeight - 32.0f ) )
-		return false;
-	m_CursorY = new CSentence( );
-	if ( !m_CursorY->Initialize( m_d3d->GetDevice( ), "Cursor position Y: 00000", WindowWidth, WindowHeight,
-		WindowWidth - 150.0f, WindowHeight - 16.0f ) )
-		return false;
 	m_FPSMessage = new CSentence();
 	if ( !m_FPSMessage->Initialize( m_d3d->GetDevice( ), "Frames per second: 000", WindowWidth, WindowHeight, 1.0f, 69.0f ) )
 		return false;
@@ -92,13 +81,18 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_ReflectionTexture = new CRenderTexture( );
 	if ( !m_ReflectionTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight ) )
 		return false;
-	m_ClippingPlane = DirectX::XMFLOAT4( 0.0f, 1.0f, 0.0f, 0.0f );
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
-	Light->SetAmbientColor( common::Color( 0.1f, 0.1f, 0.1f, 1.0f ) );
-	Light->SetDiffuseColor( common::HexToRGB( 0xFFFFFF ) );
+	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	Light->SetDiffuseColor( common::Color( 0.3f, 0.3f, 0.3f, 1.0f ) );
 	Light->SetDirection( DirectX::XMFLOAT3( 0.0f, -1.0f, 0.5f ) );
 	Light->SetSpecularPower( 32.0f );
+
+	PointLight = new CPointLight( );
+	PointLight->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, -10.0f ) );
+	PointLight->SetDiffuseColor( common::HexToRGB( 0x0000FF ) );
+	PointLight->SetAttenuation( 0.0f, 0.2f, 0.0f );
+	PointLight->SetRange( 1000.0f );
 
 	m_fWaterHeight = 0.75f;
 	m_fWaterTranslation = 0.0f;
@@ -112,13 +106,10 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
-	static char MousePosition[ 4 ];
-	static int index = 0;
-	static float delta = 1.0f;
-	m_fWaterTranslation += 0.125f * fFrameTime * delta;
-	if ( m_fWaterTranslation > 1.0f || m_fWaterTranslation < 0.0f )
-		//delta *= -1;
+	m_fWaterTranslation += 0.125f * fFrameTime;
+	if ( m_fWaterTranslation > 1.0f )
 		m_fWaterTranslation = 0.0f;
+	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
 	m_Bath->Identity( );
 	//m_Bath->Translate( 0.0f, 0.0f, 0.0f );
 	m_Wall->Identity( );
@@ -147,24 +138,6 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 			sprintf_s( buffer, ":%s:", cheat );
 			m_Cheat->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, ( float ) m_WindowHeight - 17.0f );
 		}
-		index = 0;
-		memset( MousePosition, ( int )'0', sizeof( char ) * 4 );
-		while ( MouseX && index < 4 )
-		{
-			MousePosition[ 3 - index++ ] = MouseX % 10 + '0';
-			MouseX /= 10;
-		}
-		sprintf_s( buffer, "Cursor Position X: %s", MousePosition );
-		m_CursorX->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), m_WindowWidth - 150.0f, m_WindowHeight - 32.0f );
-		memset( MousePosition, ( int )'0', sizeof( char ) * 4 );
-		index = 0;
-		while ( MouseY && index < 4 )
-		{
-			MousePosition[ 3 - index++ ] = MouseY % 10 + '0';
-			MouseY /= 10;
-		}
-		sprintf_s( buffer, "Cursor Position Y: %s", MousePosition );
-		m_CursorY->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), m_WindowWidth - 150.0f, m_WindowHeight - 16.0f );
 	}
 	else
 	{
@@ -191,7 +164,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 
 	m_Bath->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Bath->GetIndexCount( ), m_Bath->GetTexture( ),
-		m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light,
+		m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight,
 		DirectX::XMFLOAT4( 0.0f, -1.0f, 0.0f, m_fWaterHeight ) );
 
 	m_ReflectionTexture->SetRenderTarget( m_d3d->GetImmediateContext( ), m_d3d->GetDepthStencilView( ) );
@@ -199,22 +172,22 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 
 	m_Wall->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
-		m_Wall->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), Light );
+		m_Wall->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), Light, PointLight);
 
 	m_d3d->EnableBackBuffer( );
 	m_d3d->BeginScene( );
 	
 	m_Wall->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
-		m_Wall->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light );
+		m_Wall->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
 	m_Ground->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetTexture( ),
-		m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light );
+		m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
 	m_Bath->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Bath->GetIndexCount( ), m_Bath->GetTexture( ),
-		m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light );
+		m_Bath->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
 	m_Water->Render( m_d3d->GetImmediateContext( ) );
 	m_WaterShader->Render( m_d3d->GetImmediateContext( ), m_Water->GetIndexCount( ), m_ReflectionTexture->GetTexture( ),
@@ -240,14 +213,6 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 		m_2DShader->Render( m_d3d->GetImmediateContext(), m_FrameTimeMessage->GetIndexCount(), FontClass::GetTexture(),
 			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0x00FF00 ) );
 
-		m_CursorX->Render( m_d3d->GetImmediateContext( ) );
-		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_CursorX->GetIndexCount( ), FontClass::GetTexture( ),
-			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
-
-		m_CursorY->Render( m_d3d->GetImmediateContext( ) );
-		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_CursorY->GetIndexCount( ), FontClass::GetTexture( ),
-			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
-
 		m_Cursor->Render( m_d3d->GetImmediateContext(), MouseX, MouseY );
 		m_2DShader->Render( m_d3d->GetImmediateContext(), m_Cursor->GetIndexCount(), m_Cursor->GetTexture(),
 			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix() );
@@ -264,22 +229,13 @@ void CGraphics::Shutdown()
 	FontClass::Shutdown();
 
 	m_RefractionTexture->Shutdown();
-	delete m_RenderTexture;
+	delete m_RefractionTexture;
 
 	m_ReflectionTexture->Shutdown( );
 	delete m_ReflectionTexture;
 
-	m_RenderTexture->Shutdown();
-	delete m_RenderTexture;
-
 	m_Cheat->Shutdown();
 	delete m_Cheat;
-
-	m_CursorX->Shutdown( );
-	delete m_CursorX;
-
-	m_CursorY->Shutdown( );
-	delete m_CursorY;
 
 	m_FrameTimeMessage->Shutdown();
 	delete m_FrameTimeMessage;

@@ -10,6 +10,7 @@
 #include "WaterShader.h"
 #include "Camera.h"
 #include "Light.h"
+#include "PointLight.h"
 #include "C2DShader.h"
 #include "FogShader.h"
 #include "TextureShader.h"
@@ -38,15 +39,12 @@ class CGraphics sealed
 	CModel *m_Ground;
 	CModel *m_Water;
 	CLight *Light;
+	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
-	CSentence *m_CursorX;
-	CSentence *m_CursorY;
-	BitmapClass *m_RenderTexture;
 	CRenderTexture *m_RefractionTexture;
 	CRenderTexture *m_ReflectionTexture;
-	DirectX::XMFLOAT4 m_ClippingPlane;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	UINT m_RenderCount;
