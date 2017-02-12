@@ -50,9 +50,12 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_2DShader = new C2DShader();
 	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
 		return false;
+	m_DepthShader = new CDepthShader( );
+	if ( !m_DepthShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
-		0.2f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 10000.0f, 15.0f ))
+		0.2f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 1.0f, 100.0f, 15.0f ))
 		return false;
 	if (!FontClass::Initialize( m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt" ))
 		return false;
@@ -66,13 +69,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_FrameTimeMessage = new CSentence();
 	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
 		return false;
-	m_Square = new CModel( );
-	if ( !m_Square->Initialize( m_d3d->GetDevice( ), L"data\\square.txt", L"data\\Copac.png" ) )
+	m_Floor = new CModel( );
+	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\seafloor.dds" ) )
 		return false;
-	m_Ground = new CModel( );
-	if ( !m_Ground->Initialize( m_d3d->GetDevice( ), L"data\\ground.txt", L"data\\ground01.dds" ) )
-		return false;
-	trees.resize( 600 );
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
@@ -84,7 +83,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	PointLight->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, -10.0f ) );
 	PointLight->SetDiffuseColor( common::HexToRGB( 0x0000FF ) );
 	PointLight->SetAttenuation( 0.0f, 0.2f, 0.0f );
-	PointLight->SetRange( 0.0f ); // disable point light
+	PointLight->SetRange( 1000.0f ); // disable point light
 
 	return true;
 }
@@ -92,8 +91,6 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
-	m_Ground->Identity( );
-	m_Ground->Scale( 400.0f, 1.0f, 400.0f );
 	if (RenderMenu)
 	{
 		char buffer[500] = { 0 };
@@ -110,21 +107,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	else
 	{
 		m_Camera->Update( fFrameTime );
-		for ( int i = 0; i < 20; ++i )
-		{
-			for ( int j = 0; j < 30; ++j )
-			{
-				DirectX::XMFLOAT3 camPos = m_Camera->GetCameraPosition( );
-				DirectX::XMFLOAT3 treePos;
-				DirectX::XMStoreFloat3( &treePos,
-					DirectX::XMVector3TransformCoord( DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 1.0f ), trees[ i * 30 + j ] )
-				);
-				float rot = atan2f( treePos.x - camPos.x, treePos.z - camPos.z );
-				trees[ i * 30 + j ] = DirectX::XMMatrixIdentity( );
-				trees[ i * 30 + j ] = DirectX::XMMatrixRotationY(rot) * 
-					DirectX::XMMatrixTranslation( ( float ) i * 3.0f, 1.0f, ( float ) j * 3 );
-			}
-		}
+		
 	}
 
 }
@@ -141,14 +124,9 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->DisableCulling( );
 	m_d3d->BeginScene( );
 
-	m_Ground->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetTexture( ),
-		m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-
-	m_Square->Render( m_d3d->GetImmediateContext( ) );
-	for ( int i = 0; i < 600; ++i )
-		m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Square->GetIndexCount( ), m_Square->GetTexture( ),
-			trees[ i ], m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ),
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
 	
 	if (RenderMenu)
 	{
@@ -211,6 +189,9 @@ void CGraphics::Shutdown()
 	m_WaterShader->Shutdown( );
 	delete m_WaterShader;
 
+	m_DepthShader->Shutdown( );
+	delete m_DepthShader;
+
 	m_GlassShader->Shutdown( );
 	delete m_GlassShader;
 
@@ -234,11 +215,8 @@ void CGraphics::Shutdown()
 	m_Cursor->Shutdown();
 	delete m_Cursor;
 
-	m_Square->Shutdown( );
-	delete m_Square;
-
-	m_Ground->Shutdown( );
-	delete m_Ground;
+	m_Floor->Shutdown( );
+	delete m_Floor;
 	
 	m_d3d->Shutdown();
 	delete m_d3d;

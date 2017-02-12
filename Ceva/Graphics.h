@@ -9,6 +9,7 @@
 #include "ReflectionShader.h"
 #include "WaterShader.h"
 #include "GlassShader.h"
+#include "DepthShader.h"
 #include "Camera.h"
 #include "Light.h"
 #include "PointLight.h"
@@ -35,17 +36,17 @@ class CGraphics sealed
 	CTextureShader *m_TextureShader;
 	CWaterShader *m_WaterShader;
 	CGlassShader *m_GlassShader;
+	CDepthShader *m_DepthShader;
 	CCamera *m_Camera;
 	CLight *Light;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
-	CModel *m_Square;
-	CModel *m_Ground;
+	CModel *m_Floor;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
-	std::vector< DirectX::XMMATRIX > trees;
+	
 public:
 	CGraphics();
 	~CGraphics();

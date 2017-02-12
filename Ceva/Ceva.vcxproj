@@ -125,6 +125,7 @@
     <ClCompile Include="C2DShader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="commonmath.cpp" />
+    <ClCompile Include="DepthShader.cpp" />
     <ClCompile Include="FogShader.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="GlassShader.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="C2DShader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="commonmath.h" />
+    <ClInclude Include="DepthShader.h" />
     <ClInclude Include="FogShader.h" />
     <ClInclude Include="FontClass.h" />
     <ClInclude Include="GlassShader.h" />
@@ -177,6 +179,19 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="2DVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="DepthPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="DepthVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
