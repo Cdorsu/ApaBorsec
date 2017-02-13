@@ -44,6 +44,8 @@ class CGraphics sealed
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
 	CModel *m_Floor;
+	BitmapClass *m_FullScreen, *m_SmallWindow;
+	CRenderTexture *m_RenderTexture, *m_DownSampleTexture, *m_UpSampleTexture;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	

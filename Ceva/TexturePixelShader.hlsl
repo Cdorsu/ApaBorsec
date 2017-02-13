@@ -68,7 +68,7 @@ float4 main( PSIn input ) : SV_TARGET
 		finalColor /= Point.Attenuation[0] + ( size * Point.Attenuation[1] ) + ( ( size * size ) * Point.Attenuation[2] );
 	}
 
-	finalColor = saturate( finalAmbient + finalColor + color.xyz * textureColor.xyz );
+	finalColor = saturate( finalAmbient + finalColor );
 	return float4( finalColor, 1.0f );
 
 }
