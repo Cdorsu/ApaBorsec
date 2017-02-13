@@ -4,18 +4,21 @@
 
 #include <Windows.h>
 #include <d3d11.h>
+#include <DirectXMath.h>
 
 
-class CRenderTexture
+__declspec( align( 16 ) ) class CRenderTexture
 {
 	ID3D11RenderTargetView* RenderTargetView;
 	ID3D11ShaderResourceView* ShaderResourceView;
 	ID3D11Texture2D* Texture;
+	DirectX::XMMATRIX Projection;
+	DirectX::XMMATRIX Ortographic;
 public:
 	CRenderTexture();
 	~CRenderTexture();
 public:
-	bool Initialize( ID3D11Device * device, UINT WindowWidth, UINT WindowHeight );
+	bool Initialize( ID3D11Device * device, UINT WindowWidth, UINT WindowHeight, float ScreenNear, float ScreenDepth );
 	void Shutdown();
 public:
 	inline void SetRenderTarget( ID3D11DeviceContext * context, ID3D11DepthStencilView * DSView ) 
@@ -31,5 +34,14 @@ public:
 	{
 		return ShaderResourceView;
 	};
+public:
+	void * operator new( size_t size )
+	{
+		return _mm_malloc( size, 16 );
+	}
+	void operator delete ( void* obj )
+	{
+		_mm_free( obj );
+	}
 };
 
