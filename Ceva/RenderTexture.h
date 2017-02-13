@@ -34,6 +34,14 @@ public:
 	{
 		return ShaderResourceView;
 	};
+	inline DirectX::XMMATRIX GetProjection( )
+	{
+		return Projection;
+	};
+	inline DirectX::XMMATRIX GetOrtographic( )
+	{
+		return Ortographic;
+	};
 public:
 	void * operator new( size_t size )
 	{
