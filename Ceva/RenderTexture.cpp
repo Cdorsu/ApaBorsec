@@ -7,7 +7,7 @@ CRenderTexture::CRenderTexture()
 	ZeroMemory( this, sizeof( CRenderTexture ) );
 }
 
-bool CRenderTexture::Initialize( ID3D11Device * device, UINT WindowWidth, UINT WindowHeight, float ScreenNear, float ScreenDepth )
+bool CRenderTexture::Initialize( ID3D11Device * device, UINT WindowWidth, UINT WindowHeight, float FOV, float ScreenNear, float ScreenDepth )
 {
 	HRESULT hr;
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -45,7 +45,7 @@ bool CRenderTexture::Initialize( ID3D11Device * device, UINT WindowWidth, UINT W
 	if (FAILED( hr ))
 		return false;
 
-	Projection = DirectX::XMMatrixPerspectiveFovLH( 0.4f * FLOAT_PI,
+	Projection = DirectX::XMMatrixPerspectiveFovLH( FOV,
 		( FLOAT ) WindowWidth / WindowHeight, ScreenNear, ScreenDepth );
 	Ortographic = DirectX::XMMatrixOrthographicLH( WindowWidth, WindowHeight, ScreenNear, ScreenDepth );
 

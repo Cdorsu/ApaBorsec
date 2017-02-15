@@ -18,7 +18,7 @@ public:
 	CRenderTexture();
 	~CRenderTexture();
 public:
-	bool Initialize( ID3D11Device * device, UINT WindowWidth, UINT WindowHeight, float ScreenNear, float ScreenDepth );
+	bool Initialize( ID3D11Device * device, UINT WindowWidth, UINT WindowHeight, float FOV, float ScreenNear, float ScreenDepth );
 	void Shutdown();
 public:
 	inline void SetRenderTarget( ID3D11DeviceContext * context, ID3D11DepthStencilView * DSView ) 
@@ -38,7 +38,7 @@ public:
 	{
 		return Projection;
 	};
-	inline DirectX::XMMATRIX GetOrtographic( )
+	inline DirectX::XMMATRIX GetOrthoMatrix( )
 	{
 		return Ortographic;
 	};

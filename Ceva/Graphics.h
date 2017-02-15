@@ -23,6 +23,10 @@
 
 class CGraphics sealed
 {
+	static constexpr float camNear = 1.0f;
+	static constexpr float camFar = 100.0f;
+	static constexpr float FOV = 0.5f * FLOAT_PI;
+private:
 	D3DClass *m_d3d;
 	BitmapClass *m_Cursor;
 	CSimpleShader *m_NoPlaneClippingShader;
@@ -44,8 +48,6 @@ class CGraphics sealed
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
 	CModel *m_Floor;
-	BitmapClass *m_FullScreen, *m_SmallWindow;
-	CRenderTexture *m_RenderTexture, *m_DownSampleTexture, *m_UpSampleTexture;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	

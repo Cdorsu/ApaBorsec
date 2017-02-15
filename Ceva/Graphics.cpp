@@ -12,7 +12,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_WindowWidth = WindowWidth;
 	m_WindowHeight = WindowHeight;
 	m_d3d = new D3DClass();
-	if (!m_d3d->Initialize( hInstance, hWnd, WindowWidth, WindowHeight, 0.1f, 100.0f ))
+	if (!m_d3d->Initialize( hInstance, hWnd, WindowWidth, WindowHeight, camNear, camFar ))
 		return false;
 	m_Cursor = new BitmapClass();
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
@@ -55,7 +55,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
-		0.4f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 1.0f, 100.0f, 15.0f ))
+		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f ))
 		return false;
 	if (!FontClass::Initialize( m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt" ))
 		return false;
@@ -71,20 +71,6 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		return false;
 	m_Floor = new CModel( );
 	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\seafloor.dds" ) )
-		return false;
-	UINT scaledDownX = WindowWidth / 4;
-	UINT scaledDownY = WindowHeight / 4;
-	m_DownSampleTexture = new CRenderTexture( );
-	if ( !m_DownSampleTexture->Initialize( m_d3d->GetDevice( ), scaledDownX, scaledDownY, 1.0f, 100.0f ) )
-		return false;
-	m_SmallWindow = new BitmapClass( );
-	if ( !m_SmallWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, scaledDownX, scaledDownY ) )
-		return false;
-	m_UpSampleTexture = new CRenderTexture( );
-	if ( !m_UpSampleTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, 1.0f, 100.0f ) )
-		return false;
-	m_FullScreen = new BitmapClass( );
-	if ( !m_FullScreen->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, WindowWidth, WindowHeight ) )
 		return false;
 
 
@@ -233,18 +219,6 @@ void CGraphics::Shutdown()
 
 	m_Floor->Shutdown( );
 	delete m_Floor;
-
-	m_DownSampleTexture->Shutdown( );
-	delete m_DownSampleTexture;
-
-	m_UpSampleTexture->Shutdown( );
-	delete m_UpSampleTexture;
-
-	m_SmallWindow->Shutdown( );
-	delete m_SmallWindow;
-
-	m_FullScreen->Shutdown( );
-	delete m_FullScreen;
 	
 	m_d3d->Shutdown();
 	delete m_d3d;
