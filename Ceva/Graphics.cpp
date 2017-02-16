@@ -17,6 +17,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Cursor = new BitmapClass();
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
 		return false;
+	m_DebugWindow = new BitmapClass( );
+	if ( !m_DebugWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, 800, 600 ) )
+		return false;
 	m_NoPlaneClippingShader = new CSimpleShader();
 	if (!m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice() ))
 		return false;
@@ -216,6 +219,9 @@ void CGraphics::Shutdown()
 	
 	m_Cursor->Shutdown();
 	delete m_Cursor;
+
+	m_DebugWindow->Shutdown( );
+	delete m_DebugWindow;
 
 	m_Floor->Shutdown( );
 	delete m_Floor;

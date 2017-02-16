@@ -29,6 +29,7 @@ class CGraphics sealed
 private:
 	D3DClass *m_d3d;
 	BitmapClass *m_Cursor;
+	BitmapClass *m_DebugWindow;
 	CSimpleShader *m_NoPlaneClippingShader;
 	CSimpleShader *m_PlaneClippingShader;
 	CSimpleShader *m_FaddingShader;
