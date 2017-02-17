@@ -7,6 +7,8 @@ BitmapClass::BitmapClass()
 
 bool BitmapClass::Initialize( ID3D11Device * device, LPWSTR lpFilepath, int iScreenWidth, int iScreenHeight, int iBitmapWidth, int iBitmapHeight )
 {
+	PreviousX = -1;
+	PreviousY = -1;
 	if (lpFilepath != L"")
 	{
 		Texture = new CTexture();

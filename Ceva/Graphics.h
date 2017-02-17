@@ -49,6 +49,11 @@ private:
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
 	CModel *m_Floor;
+	CRenderTexture *m_RenderTexture;
+	CRenderTexture *m_DownSampleTexture;
+	CRenderTexture *m_UpSampleTexture;
+	BitmapClass *m_DownSampleWindow;
+	BitmapClass *m_UpSampleWindow;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	

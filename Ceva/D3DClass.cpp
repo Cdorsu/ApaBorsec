@@ -104,7 +104,7 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	dsViewDesc.Format = DXGI_FORMAT::DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsViewDesc.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsViewDesc.Texture2D.MipSlice = 0;
-	hr = m_d3d11Device->CreateDepthStencilView( DSBuffer, NULL, &m_DepthStencilView );
+	hr = m_d3d11Device->CreateDepthStencilView( DSBuffer, &dsViewDesc, &m_DepthStencilView );
 	if (FAILED( hr ))
 		return false;
 	DSBuffer->Release();
@@ -135,14 +135,13 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 
 	m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_RenderTargetView, m_DepthStencilView );
 
-	D3D11_VIEWPORT Viewport = { 0 };
-	Viewport.Height = (FLOAT)Height;
-	Viewport.Width = (FLOAT)Width;
-	Viewport.MaxDepth = 1.0f;
-	Viewport.MinDepth = 0.0f;
-	Viewport.TopLeftX = 0;
-	Viewport.TopLeftY = 0;
-	m_d3d11DeviceContext->RSSetViewports( 1, &Viewport );
+	DefaultViewPort.Height = (FLOAT)Height;
+	DefaultViewPort.Width = (FLOAT)Width;
+	DefaultViewPort.MaxDepth = 1.0f;
+	DefaultViewPort.MinDepth = 0.0f;
+	DefaultViewPort.TopLeftX = 0;
+	DefaultViewPort.TopLeftY = 0;
+	m_d3d11DeviceContext->RSSetViewports( 1, &DefaultViewPort );
 
 	D3D11_RASTERIZER_DESC rastDesc;
 	ZeroMemory( &rastDesc, sizeof( rastDesc ) );

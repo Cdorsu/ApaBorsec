@@ -18,7 +18,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
 		return false;
 	m_DebugWindow = new BitmapClass( );
-	if ( !m_DebugWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, 800, 600 ) )
+	if ( !m_DebugWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, 400, 400 ) )
 		return false;
 	m_NoPlaneClippingShader = new CSimpleShader();
 	if (!m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice() ))
@@ -75,6 +75,25 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Floor = new CModel( );
 	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\seafloor.dds" ) )
 		return false;
+	m_RenderTexture = new CRenderTexture( );
+	if ( !m_RenderTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
+		return false;
+	UINT downSampleWidth = WindowWidth / 4;
+	UINT downSampleHeight = WindowHeight / 4;
+	m_DownSampleTexture = new CRenderTexture( );
+	if ( !m_DownSampleTexture->Initialize( m_d3d->GetDevice( ), downSampleWidth, downSampleHeight, FOV, camNear, camFar ) )
+		return false;
+	m_UpSampleTexture = new CRenderTexture( );
+	if ( !m_UpSampleTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
+		return false;
+	m_DownSampleWindow = new BitmapClass( );
+	if ( !m_DownSampleWindow->Initialize( m_d3d->GetDevice( ), L"",
+		downSampleWidth, downSampleHeight, downSampleWidth, downSampleHeight ) )
+		return false;
+	m_UpSampleWindow = new BitmapClass( );
+	if ( !m_UpSampleWindow->Initialize( m_d3d->GetDevice( ), L"",
+		WindowWidth, WindowHeight, WindowWidth, WindowHeight ) )
+		return false;
 
 
 	Light = new CLight();
@@ -88,7 +107,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	PointLight->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, -10.0f ) );
 	PointLight->SetDiffuseColor( common::HexToRGB( 0x0000FF ) );
 	PointLight->SetAttenuation( 0.0f, 0.2f, 0.0f );
-	PointLight->SetRange( 1000.0f ); // disable point light
+	PointLight->SetRange( 0.0f ); // disable point light
 
 	return true;
 }
@@ -127,12 +146,44 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 {
 	m_Camera->Render();
 	m_d3d->DisableCulling( );
-	m_d3d->BeginScene( );
+
+	m_RenderTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
+	m_RenderTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
 
 	m_Floor->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ), m_Floor->GetTexture( ),
 		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+
+	m_DownSampleTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
+	m_DownSampleTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x00FF00 ) );
+
+	m_DownSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DownSampleWindow->GetIndexCount( ), m_RenderTexture->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_DownSampleTexture->GetOrthoMatrix( ) );
 	
+	m_UpSampleTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
+	m_UpSampleTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x00FF00 ) );
+	
+	m_UpSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_UpSampleWindow->GetIndexCount( ), m_DownSampleTexture->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_UpSampleTexture->GetOrthoMatrix( ) );
+
+	m_d3d->EnableBackBuffer( );
+	m_d3d->BeginScene( );
+	m_d3d->ResetViewPort( );
+
+	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 10, 32 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_RenderTexture->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+
+	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 411, 32 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_DownSampleTexture->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+
+	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 812, 32 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_UpSampleTexture->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+
 	if (RenderMenu)
 	{
 
@@ -226,6 +277,21 @@ void CGraphics::Shutdown()
 	m_Floor->Shutdown( );
 	delete m_Floor;
 	
+	m_RenderTexture->Shutdown( );
+	delete m_RenderTexture;
+
+	m_DownSampleTexture->Shutdown( );
+	delete m_DownSampleTexture;
+
+	m_UpSampleTexture->Shutdown( );
+	delete m_UpSampleTexture;
+
+	m_DownSampleWindow->Shutdown( );
+	delete m_DownSampleWindow;
+
+	m_UpSampleWindow->Shutdown( );
+	delete m_UpSampleWindow;
+
 	m_d3d->Shutdown();
 	delete m_d3d;
 }
