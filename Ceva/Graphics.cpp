@@ -79,7 +79,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
 		return false;
 	m_Floor = new CModel( );
-	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\seafloor.dds" ) )
+	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\cube.txt", L"data\\seafloor.dds" ) )
 		return false;
 	m_RenderTexture = new CRenderTexture( );
 	if ( !m_RenderTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
@@ -127,6 +127,8 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
+	//m_Floor->Identity( );
+	m_Floor->RotateY( 0.5f * fFrameTime );
 	static char buffer[ 500 ] = { 0 };
 	sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
 	m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
@@ -194,6 +196,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_UpSampleWindow->GetIndexCount( ), m_VerticalBlurTexture->GetTexture( ),
 		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_UpSampleTexture->GetOrthoMatrix( ) );
 
+	m_d3d->EnableBackFaceCulling( );
 	m_Floor->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ), m_Floor->GetTexture( ),
 		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
