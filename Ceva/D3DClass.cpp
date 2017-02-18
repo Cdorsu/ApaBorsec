@@ -152,7 +152,7 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	D3D11_RASTERIZER_DESC rastDesc;
 	ZeroMemory( &rastDesc, sizeof( rastDesc ) );
 	rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
-	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
 	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &NoCulling );
 	if (FAILED( hr ))
 		return false;

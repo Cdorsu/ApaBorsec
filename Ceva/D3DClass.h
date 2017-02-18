@@ -64,6 +64,14 @@ public:
 	{
 		m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_RenderTargetView, m_DepthStencilView );
 	}
+	inline void EnableTriangleListRendering( )
+	{
+		m_d3d11DeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+	}
+	inline void EnablePointListRendering( )
+	{
+		m_d3d11DeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_POINTLIST );
+	}
 	inline ID3D11DepthStencilView* GetDepthStencilView() { return m_DepthStencilView; };
 	inline DirectX::XMMATRIX& GetOrthoMatrix() { return m_OrthoMatrix; };
 public:

@@ -35,6 +35,10 @@ public:
 		context->ClearRenderTargetView( RenderTargetView, color );
 		context->ClearDepthStencilView( DSView, D3D11_CLEAR_FLAG::D3D11_CLEAR_DEPTH, 1.0f, 0 );
 	}
+	inline ID3D11Texture2D* GetActualTexture( )
+	{
+		return Texture;
+	}
 	inline ID3D11ShaderResourceView* GetTexture()
 	{
 		return ShaderResourceView;
