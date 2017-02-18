@@ -16,6 +16,8 @@
 #include "C2DShader.h"
 #include "FogShader.h"
 #include "TextureShader.h"
+#include "HorizontalBlurShader.h"
+#include "VerticalBlurShader.h"
 #include "BitmapClass.h"
 #include "Sentence.h"
 #include "RenderTexture.h"
@@ -23,7 +25,7 @@
 
 class CGraphics sealed
 {
-	static constexpr float camNear = 1.0f;
+	static constexpr float camNear = 0.1f;
 	static constexpr float camFar = 100.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
 private:
@@ -42,6 +44,8 @@ private:
 	CWaterShader *m_WaterShader;
 	CGlassShader *m_GlassShader;
 	CDepthShader *m_DepthShader;
+	CHorizontalBlurShader *m_HorizontalBlur;
+	CVerticalBlurShader *m_VerticalBlur;
 	CCamera *m_Camera;
 	CLight *Light;
 	CPointLight *PointLight;
@@ -51,7 +55,8 @@ private:
 	CModel *m_Floor;
 	CRenderTexture *m_RenderTexture;
 	CRenderTexture *m_DownSampleTexture;
-	CRenderTexture *m_UpSampleTexture;
+	CRenderTexture *m_HorizontalBlurTexture;
+	CRenderTexture *m_VerticalBlurTexture;
 	BitmapClass *m_DownSampleWindow;
 	BitmapClass *m_UpSampleWindow;
 	UINT m_WindowWidth;

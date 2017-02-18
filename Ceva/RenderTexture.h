@@ -16,6 +16,8 @@ __declspec( align( 16 ) ) class CRenderTexture
 	D3D11_VIEWPORT ViewPort;
 	DirectX::XMMATRIX Projection;
 	DirectX::XMMATRIX Ortographic;
+	FLOAT TextureWidth;
+	FLOAT TextureHeight;
 public:
 	CRenderTexture();
 	~CRenderTexture();
@@ -44,6 +46,14 @@ public:
 	inline DirectX::XMMATRIX GetOrthoMatrix( )
 	{
 		return Ortographic;
+	};
+	inline FLOAT GetTextureWidth( )
+	{
+		return TextureWidth;
+	};
+	inline FLOAT GetTextureHeight( )
+	{
+		return TextureHeight;
 	};
 public:
 	void * operator new( size_t size )

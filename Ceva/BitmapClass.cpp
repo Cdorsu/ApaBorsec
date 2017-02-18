@@ -68,10 +68,10 @@ void BitmapClass::Render( ID3D11DeviceContext * context, int PositionX, int Posi
 	context->Map( VertexBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped );
 	Vertex vertices[] =
 	{
-		Vertex( left, top, 0.0f, 0.0f, 0.0f ),
-		Vertex( right, top, 0.0f, 1.0f, 0.0f ),
-		Vertex( right, bottom, 0.0f, 1.0f, 1.0f ),
-		Vertex( left, bottom, 0.0f, 0.0f, 1.0f ),
+		Vertex( left, top, 1.0f, 0.0f, 0.0f ),
+		Vertex( right, top, 1.0f, 1.0f, 0.0f ),
+		Vertex( right, bottom, 1.0f, 1.0f, 1.0f ),
+		Vertex( left, bottom, 1.0f, 0.0f, 1.0f ),
 	};
 	memcpy( mapped.pData, vertices, sizeof( vertices ) );
 

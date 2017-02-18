@@ -9,6 +9,9 @@ CRenderTexture::CRenderTexture()
 
 bool CRenderTexture::Initialize( ID3D11Device * device, UINT WindowWidth, UINT WindowHeight, float FOV, float ScreenNear, float ScreenDepth )
 {
+	TextureWidth = ( FLOAT ) WindowWidth;
+	TextureHeight = ( FLOAT ) WindowHeight;
+
 	HRESULT hr;
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	ZeroMemory( &srvDesc, sizeof( srvDesc ) );
@@ -70,8 +73,8 @@ bool CRenderTexture::Initialize( ID3D11Device * device, UINT WindowWidth, UINT W
 	Ortographic = DirectX::XMMatrixOrthographicLH(
 		( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight, ScreenNear, ScreenDepth );
 
-	ViewPort.Height = WindowHeight;
-	ViewPort.Width = WindowWidth;
+	ViewPort.Width = TextureWidth;
+	ViewPort.Height = TextureHeight;
 	ViewPort.TopLeftX = 0;
 	ViewPort.TopLeftY = 0;
 	ViewPort.MaxDepth = 1.0f;
