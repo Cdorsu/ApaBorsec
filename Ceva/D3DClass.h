@@ -31,6 +31,7 @@ __declspec(align(16)) class D3DClass
 	ID3D11RasterizerState *NoCulling;
 	ID3D11BlendState *AlphaBlendingEnabled;
 	ID3D11DepthStencilState *DSDefaultState;
+	D3D11_VIEWPORT DefaultViewPort;
 	LPWSTR m_GPU;
 	UINT m_VideoMemory;
 	DirectX::XMMATRIX m_OrthoMatrix;
@@ -45,6 +46,7 @@ public:
 public:
 	inline ID3D11Device* GetDevice() { return m_d3d11Device; };
 	inline ID3D11DeviceContext* GetImmediateContext() { return m_d3d11DeviceContext; };
+	inline void ResetViewPort( ) { m_d3d11DeviceContext->RSSetViewports( 1, &DefaultViewPort ); };
 	inline void EnableBackFaceCulling() { m_d3d11DeviceContext->RSSetState( NULL ); };
 	inline void DisableCulling() { m_d3d11DeviceContext->RSSetState( NoCulling ); };
 	inline void DisableAlphaBlending() { m_d3d11DeviceContext->OMSetBlendState( NULL, NULL, 0xffffffff ); };

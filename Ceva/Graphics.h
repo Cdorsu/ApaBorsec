@@ -9,13 +9,15 @@
 #include "ReflectionShader.h"
 #include "WaterShader.h"
 #include "GlassShader.h"
+#include "DepthShader.h"
 #include "Camera.h"
 #include "Light.h"
 #include "PointLight.h"
 #include "C2DShader.h"
 #include "FogShader.h"
 #include "TextureShader.h"
-#include "BillboardShader.h"
+#include "HorizontalBlurShader.h"
+#include "VerticalBlurShader.h"
 #include "BitmapClass.h"
 #include "Sentence.h"
 #include "RenderTexture.h"
@@ -23,8 +25,13 @@
 
 class CGraphics sealed
 {
+	static constexpr float camNear = 0.1f;
+	static constexpr float camFar = 100.0f;
+	static constexpr float FOV = 0.5f * FLOAT_PI;
+private:
 	D3DClass *m_d3d;
 	BitmapClass *m_Cursor;
+	BitmapClass *m_DebugWindow;
 	CSimpleShader *m_NoPlaneClippingShader;
 	CSimpleShader *m_PlaneClippingShader;
 	CSimpleShader *m_FaddingShader;
@@ -36,20 +43,25 @@ class CGraphics sealed
 	CTextureShader *m_TextureShader;
 	CWaterShader *m_WaterShader;
 	CGlassShader *m_GlassShader;
-	CBillboardShader *m_BillboardShader;
+	CDepthShader *m_DepthShader;
+	CHorizontalBlurShader *m_HorizontalBlur;
+	CVerticalBlurShader *m_VerticalBlur;
 	CCamera *m_Camera;
 	CLight *Light;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
-	CRenderTexture *m_TreeImage;
-	CModel *m_Ground;
-	CModel *m_Tree;
-	CModel *m_Square;
+	CModel *m_Floor;
+	CRenderTexture *m_RenderTexture;
+	CRenderTexture *m_DownSampleTexture;
+	CRenderTexture *m_HorizontalBlurTexture;
+	CRenderTexture *m_VerticalBlurTexture;
+	BitmapClass *m_DownSampleWindow;
+	BitmapClass *m_UpSampleWindow;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
-	std::vector<DirectX::XMMATRIX> worlds;
+	
 public:
 	CGraphics();
 	~CGraphics();
@@ -58,7 +70,6 @@ public:
 	void Frame( bool RenderMenu, DWORD dwFramesPerSecond = 0, float fFrameTime = 0.0f, UINT MouseX = 0, UINT MouseY = 0, char * cheat = "" );
 	void Shutdown();
 private:
-	void CreateTreeBillboard( );
 	void Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY );
 	void Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat );
 };
