@@ -15,6 +15,7 @@
 #include "C2DShader.h"
 #include "FogShader.h"
 #include "TextureShader.h"
+#include "BillboardShader.h"
 #include "BitmapClass.h"
 #include "Sentence.h"
 #include "RenderTexture.h"
@@ -35,29 +36,20 @@ class CGraphics sealed
 	CTextureShader *m_TextureShader;
 	CWaterShader *m_WaterShader;
 	CGlassShader *m_GlassShader;
+	CBillboardShader *m_BillboardShader;
 	CCamera *m_Camera;
-	CModel *m_Bath;
-	CModel *m_Wall;
-	CModel *m_Ground;
-	CModel *m_Water;
-	CModel *m_Glass;
 	CLight *Light;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
-	CRenderTexture *m_RefractionTexture;
-	CRenderTexture *m_ReflectionTexture;
-	CRenderTexture *m_GlassRefraction;
+	CRenderTexture *m_TreeImage;
+	CModel *m_Ground;
+	CModel *m_Tree;
+	CModel *m_Square;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
-	UINT m_RenderCount;
-	float m_fStartLoadingTime;
-	float m_fLoadingTime;
-	float m_fFadeAmount;
-	bool m_bIncrease;
-	float m_fWaterHeight;
-	float m_fWaterTranslation;
+	std::vector<DirectX::XMMATRIX> worlds;
 public:
 	CGraphics();
 	~CGraphics();
@@ -66,6 +58,7 @@ public:
 	void Frame( bool RenderMenu, DWORD dwFramesPerSecond = 0, float fFrameTime = 0.0f, UINT MouseX = 0, UINT MouseY = 0, char * cheat = "" );
 	void Shutdown();
 private:
+	void CreateTreeBillboard( );
 	void Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY );
 	void Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat );
 };

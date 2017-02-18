@@ -2,7 +2,7 @@
 
 
 
-CGraphics::CGraphics()
+CGraphics::CGraphics( )
 {
 	ZeroMemory( this, sizeof( CGraphics ) );
 }
@@ -11,11 +11,11 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 {
 	m_WindowWidth = WindowWidth;
 	m_WindowHeight = WindowHeight;
-	m_d3d = new D3DClass();
-	if (!m_d3d->Initialize( hInstance, hWnd, WindowWidth, WindowHeight, 0.1f, 100.0f ))
+	m_d3d = new D3DClass( );
+	if ( !m_d3d->Initialize( hInstance, hWnd, WindowWidth, WindowHeight, 0.1f, 100.0f ) )
 		return false;
-	m_Cursor = new BitmapClass();
-	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
+	m_Cursor = new BitmapClass( );
+	if ( !m_Cursor->Initialize( m_d3d->GetDevice( ), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ) )
 		return false;
 	m_Wall = new CModel( );
 	if ( !m_Wall->Initialize( m_d3d->GetDevice( ), L"data\\wall.txt", L"data\\wall01.dds" ) )
@@ -32,8 +32,8 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Water = new CModel( );
 	if ( !m_Water->Initialize( m_d3d->GetDevice( ), L"data\\water.txt", L"data\\water01.dds" ) )
 		return false;
-	m_NoPlaneClippingShader = new CSimpleShader();
-	if (!m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice() ))
+	m_NoPlaneClippingShader = new CSimpleShader( );
+	if ( !m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
 	m_PlaneClippingShader = new CSimpleShader( );
 	if ( !m_PlaneClippingShader->Initialize( m_d3d->GetDevice( ), CSimpleShader::EType::PlaneClipping ) )
@@ -44,14 +44,14 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_TextureShader = new CTextureShader( );
 	if ( !m_TextureShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
-	m_LinearFogShader = new CFogShader();
-	if (!m_LinearFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::LinearFog))
+	m_LinearFogShader = new CFogShader( );
+	if ( !m_LinearFogShader->Initialize( m_d3d->GetDevice( ), CFogShader::EFogType::LinearFog ) )
 		return false;
-	m_ExponentialFogShader = new CFogShader();
-	if (!m_ExponentialFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::ExponentialFog))
+	m_ExponentialFogShader = new CFogShader( );
+	if ( !m_ExponentialFogShader->Initialize( m_d3d->GetDevice( ), CFogShader::EFogType::ExponentialFog ) )
 		return false;
-	m_ExponentialFogShader2 = new CFogShader();
-	if (!m_ExponentialFogShader2->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::ExponentialFog2))
+	m_ExponentialFogShader2 = new CFogShader( );
+	if ( !m_ExponentialFogShader2->Initialize( m_d3d->GetDevice( ), CFogShader::EFogType::ExponentialFog2 ) )
 		return false;
 	m_ReflectionShader = new CReflectionShader( );
 	if ( !m_ReflectionShader->Initialize( m_d3d->GetDevice( ) ) )
@@ -62,27 +62,27 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_WaterShader = new CWaterShader( );
 	if ( !m_WaterShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
-	m_2DShader = new C2DShader();
-	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
+	m_2DShader = new C2DShader( );
+	if ( !m_2DShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
-	m_Camera = new CCamera();
-	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
-		0.2f * FLOAT_PI, (FLOAT)WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ))
+	m_Camera = new CCamera( );
+	if ( !m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
+		0.2f * FLOAT_PI, ( FLOAT ) WindowWidth / WindowHeight, 0.1f, 100.0f, 15.0f ) )
 		return false;
-	if (!FontClass::Initialize( m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt" ))
+	if ( !FontClass::Initialize( m_d3d->GetDevice( ), L"data\\font.dds", L"data\\fontdata.txt" ) )
 		return false;
-	m_Cheat = new CSentence();
+	m_Cheat = new CSentence( );
 	if ( !m_Cheat->Initialize( m_d3d->GetDevice( ), "Here is a veeeery long string. Here will be wrote possible cheats",
 		WindowWidth, WindowHeight, 1.0f, ( float ) WindowHeight - 17.0f ) )
 		return false;
-	m_FPSMessage = new CSentence();
+	m_FPSMessage = new CSentence( );
 	if ( !m_FPSMessage->Initialize( m_d3d->GetDevice( ), "Frames per second: 000", WindowWidth, WindowHeight, 1.0f, 69.0f ) )
 		return false;
-	m_FrameTimeMessage = new CSentence();
+	m_FrameTimeMessage = new CSentence( );
 	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
 		return false;
-	m_RefractionTexture = new CRenderTexture();
-	if (!m_RefractionTexture->Initialize( m_d3d->GetDevice(), WindowWidth, WindowHeight ))
+	m_RefractionTexture = new CRenderTexture( );
+	if ( !m_RefractionTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight ) )
 		return false;
 	m_ReflectionTexture = new CRenderTexture( );
 	if ( !m_ReflectionTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight ) )
@@ -90,7 +90,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_GlassRefraction = new CRenderTexture( );
 	if ( !m_GlassRefraction->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight ) )
 		return false;
-	Light = new CLight();
+	Light = new CLight( );
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	Light->SetDiffuseColor( common::Color( 0.3f, 0.3f, 0.3f, 1.0f ) );
@@ -129,12 +129,12 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	m_Ground->Translate( 0.0f, -1.0f, 0.0f );
 	m_Water->Identity( );
 	m_Water->Translate( 0.0f, m_fWaterHeight, 0.0f );
-	if (RenderMenu)
+	if ( RenderMenu )
 	{
-		char buffer[500] = { 0 };
+		char buffer[ 500 ] = { 0 };
 		sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
 		m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
-		if (strcmp( cheat, "GetRenderCount" ) == 0)
+		if ( strcmp( cheat, "GetRenderCount" ) == 0 )
 		{
 			sprintf_s( buffer, "Render count: %d", m_RenderCount );
 			m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ) - 1, 1.0f, 18.0f );
@@ -167,7 +167,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 {
 	bool RenderGlass = false;
 	m_RenderCount = 0;
-	m_Camera->Render();
+	m_Camera->Render( );
 	m_Camera->RenderReflection( m_fWaterHeight );
 	m_d3d->DisableCulling( );
 
@@ -184,7 +184,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 
 	m_Wall->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
-		m_Wall->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), Light, PointLight);
+		m_Wall->GetWorld( ), m_Camera->GetReflectView( ), m_Camera->GetProjection( ), Light, PointLight );
 
 	if ( m_Camera->isCubeinFrustum( 1.0f, DirectX::XMVectorGetX( m_Glass->getMiddlePoint( ) ),
 		DirectX::XMVectorGetY( m_Glass->getMiddlePoint( ) ), DirectX::XMVectorGetZ( m_Glass->getMiddlePoint( ) ) ) )
@@ -212,7 +212,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	}
 	m_d3d->EnableBackBuffer( );
 	m_d3d->BeginScene( );
-	
+
 	m_Wall->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
 		m_Wall->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
@@ -228,7 +228,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Glass->Render( m_d3d->GetImmediateContext( ) );
 	if ( RenderGlass )
 		/*m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Glass->GetIndexCount( ), m_GlassRefraction->GetTexture( ),
-			m_Glass->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );*/
+		m_Glass->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );*/
 		m_GlassShader->Render( m_d3d->GetImmediateContext( ), m_Glass->GetIndexCount( ), m_Glass->GetTexture( ),
 			m_GlassRefraction->GetTexture( ), m_Glass->GetBumpMap( ), m_Glass->GetWorld( ), m_Camera->GetView( ),
 			m_Camera->GetProjection( ), 0.1f );
@@ -241,41 +241,41 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 		m_RefractionTexture->GetTexture( ), m_Water->GetTexture( ), m_Camera->GetReflectView( ), m_Water->GetWorld( ),
 		m_Camera->GetView( ), m_Camera->GetProjection( ), m_fWaterTranslation, 0.03f );
 
-	if (RenderMenu)
+	if ( RenderMenu )
 	{
 
-		m_d3d->EnableAlphaBlending();
+		m_d3d->EnableAlphaBlending( );
 		if ( strlen( Cheat ) > 0 )
 		{
 			m_Cheat->Render( m_d3d->GetImmediateContext( ) );
-			m_2DShader->Render( m_d3d->GetImmediateContext(), m_Cheat->GetIndexCount(), FontClass::GetTexture(),
-				DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0xFFFF00 ) );
+			m_2DShader->Render( m_d3d->GetImmediateContext( ), m_Cheat->GetIndexCount( ), FontClass::GetTexture( ),
+				DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), common::HexToRGB( 0xFFFF00 ) );
 		}
 
 		m_FPSMessage->Render( m_d3d->GetImmediateContext( ) );
-		m_2DShader->Render( m_d3d->GetImmediateContext(), m_FPSMessage->GetIndexCount(), FontClass::GetTexture(),
-			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0xFFFF00 ) );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_FPSMessage->GetIndexCount( ), FontClass::GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), common::HexToRGB( 0xFFFF00 ) );
 
 		m_FrameTimeMessage->Render( m_d3d->GetImmediateContext( ) );
-		m_2DShader->Render( m_d3d->GetImmediateContext(), m_FrameTimeMessage->GetIndexCount(), FontClass::GetTexture(),
-			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0x00FF00 ) );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_FrameTimeMessage->GetIndexCount( ), FontClass::GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), common::HexToRGB( 0x00FF00 ) );
 
-		m_Cursor->Render( m_d3d->GetImmediateContext(), MouseX, MouseY );
-		m_2DShader->Render( m_d3d->GetImmediateContext(), m_Cursor->GetIndexCount(), m_Cursor->GetTexture(),
-			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix() );
-		m_d3d->DisableAlphaBlending();
+		m_Cursor->Render( m_d3d->GetImmediateContext( ), MouseX, MouseY );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_Cursor->GetIndexCount( ), m_Cursor->GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+		m_d3d->DisableAlphaBlending( );
 
 	}
 
 
-	m_d3d->EndScene();
+	m_d3d->EndScene( );
 }
 
-void CGraphics::Shutdown()
+void CGraphics::Shutdown( )
 {
-	FontClass::Shutdown();
+	FontClass::Shutdown( );
 
-	m_RefractionTexture->Shutdown();
+	m_RefractionTexture->Shutdown( );
 	delete m_RefractionTexture;
 
 	m_ReflectionTexture->Shutdown( );
@@ -284,19 +284,19 @@ void CGraphics::Shutdown()
 	m_GlassRefraction->Shutdown( );
 	delete m_GlassRefraction;
 
-	m_Cheat->Shutdown();
+	m_Cheat->Shutdown( );
 	delete m_Cheat;
 
-	m_FrameTimeMessage->Shutdown();
+	m_FrameTimeMessage->Shutdown( );
 	delete m_FrameTimeMessage;
 
-	m_FPSMessage->Shutdown();
+	m_FPSMessage->Shutdown( );
 	delete m_FPSMessage;
 
-	m_2DShader->Shutdown();
+	m_2DShader->Shutdown( );
 	delete m_2DShader;
 
-	m_NoPlaneClippingShader->Shutdown();
+	m_NoPlaneClippingShader->Shutdown( );
 	delete m_NoPlaneClippingShader;
 
 	m_PlaneClippingShader->Shutdown( );
@@ -317,13 +317,13 @@ void CGraphics::Shutdown()
 	m_TextureShader->Shutdown( );
 	delete m_TextureShader;
 
-	m_LinearFogShader->Shutdown();
+	m_LinearFogShader->Shutdown( );
 	delete m_LinearFogShader;
 
-	m_ExponentialFogShader->Shutdown();
+	m_ExponentialFogShader->Shutdown( );
 	delete m_ExponentialFogShader;
 
-	m_ExponentialFogShader2->Shutdown();
+	m_ExponentialFogShader2->Shutdown( );
 	delete m_ExponentialFogShader2;
 
 	delete Light;
@@ -333,7 +333,7 @@ void CGraphics::Shutdown()
 
 	m_Bath->Shutdown( );
 	delete m_Bath;
-	
+
 	m_Wall->Shutdown( );
 	delete m_Wall;
 
@@ -343,17 +343,17 @@ void CGraphics::Shutdown()
 	m_Glass->Shutdown( );
 	delete m_Glass;
 
-	m_Camera->Shutdown();
+	m_Camera->Shutdown( );
 	delete m_Camera;
-	
-	m_Cursor->Shutdown();
+
+	m_Cursor->Shutdown( );
 	delete m_Cursor;
-	
-	m_d3d->Shutdown();
+
+	m_d3d->Shutdown( );
 	delete m_d3d;
 }
 
-CGraphics::~CGraphics()
+CGraphics::~CGraphics( )
 {
-	Shutdown();
+	Shutdown( );
 }
