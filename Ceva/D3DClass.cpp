@@ -131,6 +131,12 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	hr = m_d3d11Device->CreateDepthStencilState( &dsDesc, &DSDefaultState );
 	if ( FAILED( hr ) )
 		return false;
+
+	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+	hr = m_d3d11Device->CreateDepthStencilState( &dsDesc, &DSLessEqual );
+	if ( FAILED( hr ) )
+		return false;
+
 	m_d3d11DeviceContext->OMSetDepthStencilState( DSDefaultState, 1 );
 
 	m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_RenderTargetView, m_DepthStencilView );
@@ -149,6 +155,10 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &NoCulling );
 	if (FAILED( hr ))
+		return false;
+	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &Wireframe );
+	if ( FAILED( hr ) )
 		return false;
 
 	D3D11_BLEND_DESC blend;
@@ -185,6 +195,9 @@ void D3DClass::Shutdown()
 	SafeRelease( m_DepthStencilView );
 	SafeRelease( m_RenderTargetView );
 	SafeRelease( NoCulling );
+	SafeRelease( Wireframe );
+	SafeRelease( DSDefaultState );
+	SafeRelease( DSLessEqual );
 }
 
 void D3DClass::BeginScene()

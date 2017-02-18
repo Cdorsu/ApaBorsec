@@ -57,6 +57,7 @@ private:
 	CRenderTexture *m_DownSampleTexture;
 	CRenderTexture *m_HorizontalBlurTexture;
 	CRenderTexture *m_VerticalBlurTexture;
+	CRenderTexture *m_UpSampleTexture;
 	BitmapClass *m_DownSampleWindow;
 	BitmapClass *m_UpSampleWindow;
 	UINT m_WindowWidth;

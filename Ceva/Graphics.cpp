@@ -95,6 +95,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_VerticalBlurTexture = new CRenderTexture( );
 	if ( !m_VerticalBlurTexture->Initialize( m_d3d->GetDevice( ), downSampleWidth, downSampleHeight, FOV, camNear, camFar ) )
 		return false;
+	m_UpSampleTexture = new CRenderTexture( );
+	if ( !m_UpSampleTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
+		return false;
 	m_DownSampleWindow = new BitmapClass( );
 	if ( !m_DownSampleWindow->Initialize( m_d3d->GetDevice( ), L"",
 		downSampleWidth, downSampleHeight, downSampleWidth, downSampleHeight ) )
@@ -184,6 +187,17 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_VerticalBlur->Render( m_d3d->GetImmediateContext( ), m_DownSampleWindow->GetIndexCount( ), m_HorizontalBlurTexture->GetTexture( ),
 		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_DownSampleTexture->GetOrthoMatrix( ), m_VerticalBlurTexture->GetTextureHeight( ) );
 
+	m_UpSampleTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
+	m_UpSampleTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x00FF00 ) );
+	
+	m_UpSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_UpSampleWindow->GetIndexCount( ), m_VerticalBlurTexture->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_UpSampleTexture->GetOrthoMatrix( ) );
+
+	m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ), m_Floor->GetTexture( ),
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+
 	m_d3d->EnableBackBuffer( );
 	m_d3d->BeginScene( );
 	m_d3d->ResetViewPort( );
@@ -208,10 +222,9 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 #pragma endregion
 
 	m_UpSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_UpSampleWindow->GetIndexCount( ), m_VerticalBlurTexture->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_UpSampleWindow->GetIndexCount( ), m_UpSampleTexture->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_UpSampleTexture->GetOrthoMatrix( ) );
 
-	
 	m_d3d->EndScene();
 }
 
@@ -295,6 +308,9 @@ void CGraphics::Shutdown()
 
 	m_VerticalBlurTexture->Shutdown( );
 	delete m_VerticalBlurTexture;
+
+	m_UpSampleTexture->Shutdown( );
+	delete m_UpSampleTexture;
 
 	m_DownSampleWindow->Shutdown( );
 	delete m_DownSampleWindow;

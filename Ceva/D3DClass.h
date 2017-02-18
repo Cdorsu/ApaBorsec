@@ -29,8 +29,10 @@ __declspec(align(16)) class D3DClass
 	ID3D11Device *m_d3d11Device;
 	ID3D11DeviceContext *m_d3d11DeviceContext;
 	ID3D11RasterizerState *NoCulling;
+	ID3D11RasterizerState *Wireframe;
 	ID3D11BlendState *AlphaBlendingEnabled;
 	ID3D11DepthStencilState *DSDefaultState;
+	ID3D11DepthStencilState *DSLessEqual;
 	D3D11_VIEWPORT DefaultViewPort;
 	LPWSTR m_GPU;
 	UINT m_VideoMemory;
@@ -49,6 +51,9 @@ public:
 	inline void ResetViewPort( ) { m_d3d11DeviceContext->RSSetViewports( 1, &DefaultViewPort ); };
 	inline void EnableBackFaceCulling() { m_d3d11DeviceContext->RSSetState( NULL ); };
 	inline void DisableCulling() { m_d3d11DeviceContext->RSSetState( NoCulling ); };
+	inline void EnableWireframe( ) { m_d3d11DeviceContext->RSSetState( Wireframe ); };
+	inline void EnableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( DSLessEqual, 0 ); };
+	inline void DisableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( DSDefaultState, 0 ); };
 	inline void DisableAlphaBlending() { m_d3d11DeviceContext->OMSetBlendState( NULL, NULL, 0xffffffff ); };
 	inline void EnableAlphaBlending()
 	{
