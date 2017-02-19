@@ -62,6 +62,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_VerticalBlur = new CVerticalBlurShader( );
 	if ( !m_VerticalBlur->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
+	m_InstanceShader = new CInstanceShader( );
+	if ( !m_InstanceShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
 		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f ))
@@ -78,41 +81,16 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_FrameTimeMessage = new CSentence();
 	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
 		return false;
-	m_Floor = new CModel( );
-	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\cube.txt", L"data\\seafloor.dds" ) )
-		return false;
-	m_RenderTexture = new CRenderTexture( );
-	if ( !m_RenderTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
-		return false;
-	UINT downSampleWidth = WindowWidth / 4;
-	UINT downSampleHeight = WindowHeight / 4;
-	m_DownSampleTexture = new CRenderTexture( );
-	if ( !m_DownSampleTexture->Initialize( m_d3d->GetDevice( ), downSampleWidth, downSampleHeight, FOV, camNear, camFar ) )
-		return false;
-	m_HorizontalBlurTexture = new CRenderTexture( );
-	if ( !m_HorizontalBlurTexture->Initialize( m_d3d->GetDevice( ), downSampleWidth, downSampleHeight, FOV, camNear, camFar ) )
-		return false;
-	m_VerticalBlurTexture = new CRenderTexture( );
-	if ( !m_VerticalBlurTexture->Initialize( m_d3d->GetDevice( ), downSampleWidth, downSampleHeight, FOV, camNear, camFar ) )
-		return false;
-	m_UpSampleTexture = new CRenderTexture( );
-	if ( !m_UpSampleTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
-		return false;
-	m_DownSampleWindow = new BitmapClass( );
-	if ( !m_DownSampleWindow->Initialize( m_d3d->GetDevice( ), L"",
-		downSampleWidth, downSampleHeight, downSampleWidth, downSampleHeight ) )
-		return false;
-	m_UpSampleWindow = new BitmapClass( );
-	if ( !m_UpSampleWindow->Initialize( m_d3d->GetDevice( ), L"",
-		WindowWidth, WindowHeight, WindowWidth, WindowHeight ) )
+	m_Model = new CModel( );
+	if ( !m_Model->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
 
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
-	Light->SetAmbientColor( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
+	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	Light->SetDiffuseColor( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	Light->SetDirection( DirectX::XMFLOAT3( 0.0f, -1.0f, 0.5f ) );
+	Light->SetDirection( DirectX::XMFLOAT3( 0.5f, -1.0f, 0.5f ) );
 	Light->SetSpecularPower( 32.0f );
 
 	PointLight = new CPointLight( );
@@ -127,8 +105,6 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
-	//m_Floor->Identity( );
-	m_Floor->RotateY( 0.5f * fFrameTime );
 	static char buffer[ 500 ] = { 0 };
 	sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
 	m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
@@ -161,46 +137,6 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Camera->Render();
 	m_d3d->DisableCulling( );
 
-	m_RenderTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_RenderTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
-
-	m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ), m_Floor->GetTexture( ),
-		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-
-	m_DownSampleTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_DownSampleTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x00FF00 ) );
-
-	m_DownSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DownSampleWindow->GetIndexCount( ), m_RenderTexture->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_DownSampleTexture->GetOrthoMatrix( ) );
-
-	m_HorizontalBlurTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_HorizontalBlurTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x00FF00 ) );
-
-	m_DownSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
-	m_HorizontalBlur->Render( m_d3d->GetImmediateContext( ), m_DownSampleWindow->GetIndexCount( ), m_DownSampleTexture->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_DownSampleTexture->GetOrthoMatrix( ), m_HorizontalBlurTexture->GetTextureWidth( ) );
-
-	m_VerticalBlurTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_VerticalBlurTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x00FF00 ) );
-
-	m_DownSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
-	m_VerticalBlur->Render( m_d3d->GetImmediateContext( ), m_DownSampleWindow->GetIndexCount( ), m_HorizontalBlurTexture->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_DownSampleTexture->GetOrthoMatrix( ), m_VerticalBlurTexture->GetTextureHeight( ) );
-
-	m_UpSampleTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_UpSampleTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x00FF00 ) );
-	
-	m_UpSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_UpSampleWindow->GetIndexCount( ), m_VerticalBlurTexture->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_UpSampleTexture->GetOrthoMatrix( ) );
-
-	m_d3d->EnableBackFaceCulling( );
-	m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ), m_Floor->GetTexture( ),
-		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-
 	m_d3d->EnableBackBuffer( );
 	m_d3d->BeginScene( );
 	m_d3d->ResetViewPort( );
@@ -224,9 +160,10 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->DisableAlphaBlending( );
 #pragma endregion
 
-	m_UpSampleWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_UpSampleWindow->GetIndexCount( ), m_UpSampleTexture->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_UpSampleTexture->GetOrthoMatrix( ) );
+	m_Model->RenderInstanced( m_d3d->GetImmediateContext( ) );
+	m_InstanceShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ), m_Model->GetInstanceCount( ),
+		m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
+
 
 	m_d3d->EndScene();
 }
@@ -297,29 +234,11 @@ void CGraphics::Shutdown()
 	m_DebugWindow->Shutdown( );
 	delete m_DebugWindow;
 
-	m_Floor->Shutdown( );
-	delete m_Floor;
-	
-	m_RenderTexture->Shutdown( );
-	delete m_RenderTexture;
+	m_InstanceShader->Shutdown( );
+	delete m_InstanceShader;
 
-	m_DownSampleTexture->Shutdown( );
-	delete m_DownSampleTexture;
-
-	m_HorizontalBlurTexture->Shutdown( );
-	delete m_HorizontalBlurTexture;
-
-	m_VerticalBlurTexture->Shutdown( );
-	delete m_VerticalBlurTexture;
-
-	m_UpSampleTexture->Shutdown( );
-	delete m_UpSampleTexture;
-
-	m_DownSampleWindow->Shutdown( );
-	delete m_DownSampleWindow;
-
-	m_UpSampleWindow->Shutdown( );
-	delete m_UpSampleWindow;
+	m_Model->Shutdown( );
+	delete m_Model;
 
 	m_d3d->Shutdown();
 	delete m_d3d;

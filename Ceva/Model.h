@@ -29,9 +29,17 @@ private:
 			float nx, float ny, float nz )
 			:Position( x, y, z ), Texture( u, v ), Normal( nx, ny, nz ) {};
 	};
+	struct Instance
+	{
+		DirectX::XMFLOAT3 Position;
+		common::Color Color;
+		Instance( float x, float y, float z,
+			float r, float g, float b )
+			:Position( x, y, z ), Color( r, g, b, 1.0f ) {};
+	};
 private:
-	ID3D11Buffer *VertexBuffer, *IndexBuffer;
-	UINT VertexCount, IndexCount;
+	ID3D11Buffer *VertexBuffer, *IndexBuffer, *InstanceBuffer;
+	UINT VertexCount, IndexCount, InstanceCount;
 	DirectX::XMMATRIX World;
 	DirectX::XMVECTOR MiddlePoint;
 	CTexture *Texture;
@@ -46,10 +54,12 @@ public:
 	bool Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR Texture, LPWSTR Bumpmap );
 	bool Initialize( ID3D11Device * device, LPWSTR lpFilepath, LPWSTR Texture, LPWSTR Bumpmap, LPWSTR Specular );
 	void Render( ID3D11DeviceContext * context );
+	void RenderInstanced( ID3D11DeviceContext * context );
 	void Shutdown();
 public:
 	inline UINT GetVertexCount() { return VertexCount; };
 	inline UINT GetIndexCount() { return IndexCount; };
+	inline UINT GetInstanceCount( ) { return InstanceCount; };
 	inline DirectX::XMMATRIX& GetWorld() { return World; };
 	inline ID3D11ShaderResourceView* GetTexture() { return Texture->GetTexture(); };
 	inline ID3D11ShaderResourceView* GetBumpMap() { return BumpMap->GetTexture(); };

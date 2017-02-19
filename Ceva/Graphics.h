@@ -18,6 +18,7 @@
 #include "TextureShader.h"
 #include "HorizontalBlurShader.h"
 #include "VerticalBlurShader.h"
+#include "InstanceShader.h"
 #include "BitmapClass.h"
 #include "Sentence.h"
 #include "RenderTexture.h"
@@ -46,20 +47,14 @@ private:
 	CDepthShader *m_DepthShader;
 	CHorizontalBlurShader *m_HorizontalBlur;
 	CVerticalBlurShader *m_VerticalBlur;
+	CInstanceShader *m_InstanceShader;
 	CCamera *m_Camera;
 	CLight *Light;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
-	CModel *m_Floor;
-	CRenderTexture *m_RenderTexture;
-	CRenderTexture *m_DownSampleTexture;
-	CRenderTexture *m_HorizontalBlurTexture;
-	CRenderTexture *m_VerticalBlurTexture;
-	CRenderTexture *m_UpSampleTexture;
-	BitmapClass *m_DownSampleWindow;
-	BitmapClass *m_UpSampleWindow;
+	CModel *m_Model;
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	

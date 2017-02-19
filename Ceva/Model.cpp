@@ -10,7 +10,7 @@ CModel::CModel()
 bool CModel::Initialize( ID3D11Device * device )
 {
 	Texture = new CTexture();
-	if (!Texture->Initialize( device, L"AnaS.dds" ))
+	if (!Texture->Initialize( device, L"data\\seafloor.dds" ))
 		return false;
 
 	HRESULT hr;
@@ -102,6 +102,22 @@ bool CModel::Initialize( ID3D11Device * device )
 	buffData.pSysMem = Indices;
 	hr = device->CreateBuffer( &buffDesc, &buffData, &IndexBuffer );
 	if (FAILED( hr ))
+		return false;
+	InstanceCount = 5;
+	Instance Instances[ ] =
+	{
+		Instance( -10.0f, 0.0f, 5.0f, 1.0f, 0.0f, 0.0f ),
+		Instance( 10.0f, 0.0f, 5.0f, 0.0f, 1.0f, 0.0f ),
+		Instance( -10.0f, 0.0f, -5.0f, 0.0f, 0.0f, 1.0f ),
+		Instance( 10.0f, 0.0f, -5.0f, 1.0f, 1.0f, 0.0f ),
+		Instance( 0.0f, 0.0f, 0.0f, 1.0f,0.0f,1.0f ),
+	};
+	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+	buffDesc.ByteWidth = sizeof( Instances );
+	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+	buffData.pSysMem = Instances;
+	hr = device->CreateBuffer( &buffDesc, &buffData, &InstanceBuffer );
+	if ( FAILED( hr ) )
 		return false;
 
 	return true;
@@ -418,6 +434,16 @@ void CModel::Render( ID3D11DeviceContext * context )
 	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 }
 
+void CModel::RenderInstanced( ID3D11DeviceContext * context )
+{
+	UINT Strides[ ] = { sizeof( Vertex ),sizeof( Instance ) };
+	UINT Offsets[ ] = { 0,0 };
+	ID3D11Buffer *Buffers[ ] = { VertexBuffer,InstanceBuffer };
+	context->IASetVertexBuffers( 0, 2, Buffers, Strides, Offsets );
+	context->IASetIndexBuffer( IndexBuffer, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0 );
+	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+}
+
 void CModel::Shutdown()
 {
 	SpecularMap->Shutdown();
@@ -428,6 +454,7 @@ void CModel::Shutdown()
 	delete Texture;
 	SafeRelease( VertexBuffer );
 	SafeRelease( IndexBuffer );
+	SafeRelease( InstanceBuffer );
 }
 
 CModel::~CModel()
