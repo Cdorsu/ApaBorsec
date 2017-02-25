@@ -141,6 +141,10 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->BeginScene( );
 	m_d3d->ResetViewPort( );
 
+	m_Model->RenderInstanced( m_d3d->GetImmediateContext( ) );
+	m_InstanceShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ), m_Model->GetInstanceCount( ),
+		m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
+
 #pragma region Draw UI
 	m_d3d->EnableAlphaBlending( );
 
@@ -149,20 +153,16 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 		if ( strlen( Cheat ) > 0 )
 		{
 			m_Cheat->Render( m_d3d->GetImmediateContext( ) );
-			m_2DShader->Render( m_d3d->GetImmediateContext(), m_Cheat->GetIndexCount(), FontClass::GetTexture(),
-				DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix(), common::HexToRGB( 0xFFFF00 ) );
+			m_2DShader->Render( m_d3d->GetImmediateContext( ), m_Cheat->GetIndexCount( ), FontClass::GetTexture( ),
+				DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), common::HexToRGB( 0xFFFF00 ) );
 		}
 
-		m_Cursor->Render( m_d3d->GetImmediateContext(), MouseX, MouseY );
-		m_2DShader->Render( m_d3d->GetImmediateContext(), m_Cursor->GetIndexCount(), m_Cursor->GetTexture(),
-			DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix() );
+		m_Cursor->Render( m_d3d->GetImmediateContext( ), MouseX, MouseY );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_Cursor->GetIndexCount( ), m_Cursor->GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
 	}
 	m_d3d->DisableAlphaBlending( );
 #pragma endregion
-
-	m_Model->RenderInstanced( m_d3d->GetImmediateContext( ) );
-	m_InstanceShader->Render( m_d3d->GetImmediateContext( ), m_Model->GetIndexCount( ), m_Model->GetInstanceCount( ),
-		m_Model->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
 
 
 	m_d3d->EndScene();
