@@ -54,7 +54,19 @@ private:
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
-	CModel *m_Model;
+	// Scene models
+	CModel *m_Bath;
+	CModel *m_Wall;
+	CModel *m_Ground;
+	CModel *m_Water;
+	// Textures
+	CRenderTexture *RefractionTexture;
+	CRenderTexture *ReflectionTexture;
+
+	// Water info
+	float WaterHeight;
+	float WaterTranslation;
+
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	
