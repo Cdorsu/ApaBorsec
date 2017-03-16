@@ -52,7 +52,7 @@ float4 main( PSIn input ) : SV_TARGET
 	color = saturate( color );
 
 	float3 finalColor = float3( 0.0f, 0.0f, 0.0f );
-	float3 finalAmbient = color * textureColor;
+	float3 finalAmbient = color.xyz * textureColor.xyz;
 
 
 	float3 lightToPixelVec = Point.Position - input.worldPos;

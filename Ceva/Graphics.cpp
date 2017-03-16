@@ -20,6 +20,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_DebugWindow = new BitmapClass( );
 	if ( !m_DebugWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, 400, 400 ) )
 		return false;
+	m_DebugWindowTexture = new CRenderTexture( );
+	if ( !m_DebugWindowTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
+		return false;
 	m_NoPlaneClippingShader = new CSimpleShader();
 	if (!m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice() ))
 		return false;
@@ -103,8 +106,8 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	PointLight = new CPointLight( );
 	PointLight->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, -10.0f ) );
 	PointLight->SetDiffuseColor( common::HexToRGB( 0x0000FF ) );
-	PointLight->SetAttenuation( 0.0f, 0.2f, 0.0f );
-	PointLight->SetRange( 1000.0f ); // disable point light
+	PointLight->SetAttenuation( 0.4f, 0.2f, 0.0f );
+	PointLight->SetRange( 0.0f ); // disable point light
 
 
 	return true;
@@ -254,6 +257,9 @@ void CGraphics::Shutdown()
 
 	m_DebugWindow->Shutdown( );
 	delete m_DebugWindow;
+
+	m_DebugWindowTexture->Shutdown( );
+	delete m_DebugWindowTexture;
 
 	m_InstanceShader->Shutdown( );
 	delete m_InstanceShader;
