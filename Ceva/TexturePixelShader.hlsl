@@ -42,7 +42,6 @@ float4 main( PSIn input ) : SV_TARGET
 	clip ( textureColor.a - 0.25f );
 	float4 color = Sun.Ambient;
 	float3 lightDir = -Sun.Direction;
-	float4 color1 = float4( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	float howMuchLight = dot( input.Normal, lightDir );
 	if ( howMuchLight > 0.0f )
@@ -53,7 +52,8 @@ float4 main( PSIn input ) : SV_TARGET
 	color = saturate( color );
 
 	float3 finalColor = float3( 0.0f, 0.0f, 0.0f );
-	float3 finalAmbient = textureColor.xyz * Sun.Ambient.xyz;
+	float3 finalAmbient = color * textureColor;
+
 
 	float3 lightToPixelVec = Point.Position - input.worldPos;
 	float size = length( lightToPixelVec );

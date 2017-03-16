@@ -59,7 +59,7 @@ public:
 	inline void SetRoll( float Value ) { camRoll = Value; };
 	inline void SetCamPos( DirectX::XMVECTOR& NewPos ) { camPos = NewPos; };
 	inline void SetCamForward( DirectX::XMVECTOR& NewDir ) { camForward = NewDir; };
-	inline void SetCamPos( DirectX::XMFLOAT3 NewPos ) { camPos = DirectX::XMVectorSet( NewPos.x, NewPos.y, NewPos.y, 1.0f ); };
+	inline void SetCamPos( DirectX::XMFLOAT3 NewPos ) { camPos = DirectX::XMVectorSet( NewPos.x, NewPos.y, NewPos.z, 1.0f ); };
 	inline void SetCamRot( DirectX::XMFLOAT3 NewRot ) { camYaw = NewRot.x; camPitch = NewRot.y; camRoll = NewRot.z; };
 };
 
