@@ -59,6 +59,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_DepthShader = new CDepthShader( );
 	if ( !m_DepthShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
+	m_ShadowShader = new CShadowShader( );
+	if ( !m_ShadowShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_HorizontalBlur = new CHorizontalBlurShader( );
 	if ( !m_HorizontalBlur->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
@@ -96,6 +99,10 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if ( !m_Sphere->Initialize( m_d3d->GetDevice( ), L"data\\sphere.txt", L"data\\wall01.dds" ) )
 		return false;
 
+	m_Depthmap = new CRenderTexture( );
+	if ( !m_Depthmap->Initialize( m_d3d->GetDevice( ), ( UINT ) SHADOW_WIDTH, ( UINT ) SHADOW_HEIGHT, LightFOV, camNear, camFar ) )
+		return false;
+
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -109,12 +116,39 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	PointLight->SetAttenuation( 0.4f, 0.2f, 0.0f );
 	PointLight->SetRange( 0.0f ); // disable point light
 
+	m_LightView = new CLightView( );
+	if ( !m_LightView->Initialize( ) )
+		return false;
+	m_LightView->SetAmbient( common::Color( 0.2f, 0.2f, 0.2f, 1.0f ) );
+	m_LightView->SetDiffuse( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
+	m_LightView->SetFocus( DirectX::XMFLOAT3( -2.0f, 0.0f, 0.0f ) );
+	m_LightView->SetPerspective( LightFOV, camNear, camFar, ( FLOAT ) SHADOW_WIDTH, ( FLOAT ) SHADOW_HEIGHT );
+	m_LightView->GenerateProjectionMatrix( );
+	
 
 	return true;
 }
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
+	static float LightX = 0.0f;
+	static int delta = 1;
+
+	if ( LightX > 7.0f || LightX < -7.0f )
+		delta *= -1;
+	LightX += delta * fFrameTime * 1.0f;
+	m_LightView->SetPosition( DirectX::XMFLOAT3( LightX, 1.0f, 0.0f ) );
+
+	m_Ground->Identity( );
+
+	m_Cube->Identity( );
+	m_Cube->Translate( 0.0f, 1.0f, 0.0f );
+
+	m_Sphere->Identity( );
+	m_Sphere->Translate( -3.0f, 1.0f, 0.0f );
+
+	
+
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
 	static char buffer[ 500 ] = { 0 };
 	sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
@@ -134,41 +168,60 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 		m_Camera->Update( fFrameTime );
 		
 	}
-
 }
 
 void CGraphics::Frame( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * Cheat )
 {
-	m_Ground->Identity( );
-
-	m_Cube->Identity( );
-	m_Cube->Translate( 0.0f, 1.0f, 0.0f );
-	
-	m_Sphere->Identity( );
-	m_Sphere->Translate( -5.0f, 1.0f, 0.0f );
 
 	Update( RenderMenu, dwFramesPerSecond, fFrameTime, MouseX, MouseY, Cheat );
 	Render( RenderMenu, Cheat, MouseX, MouseY );
+
 }
 
 void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY )
 {
 	m_Camera->Render();
+	m_LightView->GenerateViewMatrix( );
 	m_d3d->DisableCulling( );
+
+	m_Depthmap->SetRenderTarget( m_d3d->GetImmediateContext( ) );
+	m_Depthmap->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
+
+	m_Ground->Render( m_d3d->GetImmediateContext( ) );
+	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
+		m_Ground->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ));
+
+	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
+	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
+		m_Sphere->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ) );
+
+	m_Cube->Render( m_d3d->GetImmediateContext( ) );
+	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
+		m_Cube->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ) );
+
+	m_DebugWindowTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
+	m_DebugWindowTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
+
+	m_Ground->Render( m_d3d->GetImmediateContext( ) );
+
+	m_d3d->ResetViewPort( );
 	m_d3d->EnableBackBuffer( );
 	m_d3d->BeginScene( );
 
 	m_Ground->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetTexture( ),
-		m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_ShadowShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
+		m_Ground->GetTexture( ), m_Depthmap->GetTexture( ), m_Ground->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView );
 
 	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
-		m_Sphere->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_ShadowShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
+		m_Sphere->GetTexture( ), m_Depthmap->GetTexture( ), m_Sphere->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView );
 
 	m_Cube->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetTexture( ),
-		m_Cube->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_ShadowShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
+		m_Cube->GetTexture( ), m_Depthmap->GetTexture( ), m_Cube->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView );
 
 #pragma region Draw UI
 	m_d3d->EnableAlphaBlending( );
@@ -226,6 +279,9 @@ void CGraphics::Shutdown()
 	m_DepthShader->Shutdown( );
 	delete m_DepthShader;
 
+	m_ShadowShader->Shutdown( );
+	delete m_ShadowShader;
+
 	m_HorizontalBlur->Shutdown( );
 	delete m_HorizontalBlur;
 
@@ -266,6 +322,15 @@ void CGraphics::Shutdown()
 
 	m_Ground->Shutdown( );
 	delete m_Ground;
+
+	m_Sphere->Shutdown( );
+	delete m_Sphere;
+
+	m_Cube->Shutdown( );
+	delete m_Cursor;
+
+	m_Depthmap->Shutdown( );
+	delete m_Depthmap;
 
 	m_d3d->Shutdown();
 	delete m_d3d;

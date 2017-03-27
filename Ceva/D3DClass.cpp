@@ -46,6 +46,7 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 			Numerator = ModeDesc[i].RefreshRate.Numerator;
 			Denominator = ModeDesc[i].RefreshRate.Denominator;
 		}
+	delete ModeDesc;
 	hr = Adapter->GetDesc( &AdapterDesc );
 	if (FAILED( hr ))
 		return false;

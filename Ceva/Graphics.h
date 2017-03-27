@@ -22,13 +22,17 @@
 #include "BitmapClass.h"
 #include "Sentence.h"
 #include "RenderTexture.h"
+#include "ShadowShader.h"
 
 
 class CGraphics sealed
 {
 	static constexpr float camNear = 0.1f;
-	static constexpr float camFar = 100.0f;
+	static constexpr float camFar = 1000.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
+	static constexpr float LightFOV = 0.7f * FLOAT_PI;
+	static constexpr float SHADOW_WIDTH = 1024;
+	static constexpr float SHADOW_HEIGHT = 1024;
 private:
 	D3DClass *m_d3d;
 	BitmapClass *m_Cursor;
@@ -46,11 +50,13 @@ private:
 	CWaterShader *m_WaterShader;
 	CGlassShader *m_GlassShader;
 	CDepthShader *m_DepthShader;
+	CShadowShader *m_ShadowShader;
 	CHorizontalBlurShader *m_HorizontalBlur;
 	CVerticalBlurShader *m_VerticalBlur;
 	CInstanceShader *m_InstanceShader;
 	CCamera *m_Camera;
 	CLight *Light;
+	CLightView *m_LightView;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
@@ -59,6 +65,7 @@ private:
 	CModel *m_Ground;
 	CModel *m_Cube;
 	CModel *m_Sphere;
+	CRenderTexture *m_Depthmap;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
