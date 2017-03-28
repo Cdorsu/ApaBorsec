@@ -44,6 +44,7 @@ VSOut main( float4 inPos : POSITION, float2 inTex : TEXCOORD, float3 inNor : NOR
 	output.LightViewProjection = mul ( output.LightViewProjection, LightView );
 	output.LightViewProjection = mul ( output.LightViewProjection, LightProjection );
 
+	//output.lightPos = output.WorldPos.xyz - LightPos.xyz;
 	output.lightPos = LightPos.xyz - output.WorldPos.xyz;
 	output.lightPos = normalize ( output.lightPos );
 

@@ -119,7 +119,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_LightView = new CLightView( );
 	if ( !m_LightView->Initialize( ) )
 		return false;
-	m_LightView->SetAmbient( common::Color( 0.2f, 0.2f, 0.2f, 1.0f ) );
+	m_LightView->SetAmbient( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	m_LightView->SetDiffuse( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_LightView->SetFocus( DirectX::XMFLOAT3( -2.0f, 0.0f, 0.0f ) );
 	m_LightView->SetPerspective( LightFOV, camNear, camFar, ( FLOAT ) SHADOW_WIDTH, ( FLOAT ) SHADOW_HEIGHT );
@@ -137,7 +137,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	if ( LightX > 7.0f || LightX < -7.0f )
 		delta *= -1;
 	LightX += delta * fFrameTime * 1.0f;
-	m_LightView->SetPosition( DirectX::XMFLOAT3( LightX, 1.0f, 0.0f ) );
+	m_LightView->SetPosition( DirectX::XMFLOAT3( LightX, 3.0f, 0.0f ) );
 
 	m_Ground->Identity( );
 
@@ -198,9 +198,6 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Cube->Render( m_d3d->GetImmediateContext( ) );
 	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
 		m_Cube->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ) );
-
-	m_DebugWindowTexture->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_DebugWindowTexture->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
 
 	m_Ground->Render( m_d3d->GetImmediateContext( ) );
 

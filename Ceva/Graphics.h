@@ -28,9 +28,9 @@
 class CGraphics sealed
 {
 	static constexpr float camNear = 0.1f;
-	static constexpr float camFar = 1000.0f;
+	static constexpr float camFar = 100.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
-	static constexpr float LightFOV = 0.7f * FLOAT_PI;
+	static constexpr float LightFOV = 0.5f * FLOAT_PI;
 	static constexpr float SHADOW_WIDTH = 1024;
 	static constexpr float SHADOW_HEIGHT = 1024;
 private:

@@ -23,6 +23,8 @@ cbuffer cbLight : register( b0 )
 
 float4 main(PSIn input) : SV_Target
 {
+    float4 color = Ambient;
+    float diffuse = ObjTexture.Sample ( WrapSampler, input.TexCoord );
     float2 projectedTexCoord;
     float bias = 0.001f;
 
@@ -36,14 +38,17 @@ float4 main(PSIn input) : SV_Target
         lightDepthValue -= bias;
         if (depth > lightDepthValue)
         {
-            /*float howMuchLight = dot ( input.Normal, input.lightPos );
+            float howMuchLight = saturate ( dot ( input.Normal, input.lightPos ) );
             if ( howMuchLight > 0.0f )
             {
-                return ObjTexture.Sample ( WrapSampler, input.TexCoord ) * Diffuse * howMuchLight;
-            }*/
-            return ObjTexture.Sample ( WrapSampler, input.TexCoord );
+                //return howMuchLight;
+                //return howMuchLight * diffuse * Diffuse;
+                color += howMuchLight * Diffuse;
+                color = saturate ( color );
+            }
         }
-        
     }
-    return ObjTexture.Sample ( WrapSampler, input.TexCoord ) * Ambient;
+    //return ObjTexture.Sample ( WrapSampler, input.TexCoord ) * Ambient;
+    color = saturate ( Ambient + color );
+    return color * diffuse;
 }
