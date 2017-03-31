@@ -99,6 +99,9 @@
     <ClCompile Include="LightView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MultipleShadowShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DClass.h">
@@ -191,6 +194,9 @@
     <ClInclude Include="LightView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MultipleShadowShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -272,6 +278,12 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="ShadowVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="MultipleShadowVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="MultipleShadowPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

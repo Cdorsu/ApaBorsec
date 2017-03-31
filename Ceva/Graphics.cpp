@@ -62,6 +62,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_ShadowShader = new CShadowShader( );
 	if ( !m_ShadowShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
+	m_MultipleShadowShader = new CMultipleShadowShader( );
+	if ( !m_MultipleShadowShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_HorizontalBlur = new CHorizontalBlurShader( );
 	if ( !m_HorizontalBlur->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
@@ -102,6 +105,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Depthmap = new CRenderTexture( );
 	if ( !m_Depthmap->Initialize( m_d3d->GetDevice( ), ( UINT ) SHADOW_WIDTH, ( UINT ) SHADOW_HEIGHT, LightFOV, camNear, camFar ) )
 		return false;
+	m_Depthmap2 = new CRenderTexture( );
+	if ( !m_Depthmap2->Initialize( m_d3d->GetDevice( ), ( UINT ) SHADOW_WIDTH, ( UINT ) SHADOW_HEIGHT, LightFOV, camNear, camFar ) )
+		return false;
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
@@ -119,11 +125,20 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_LightView = new CLightView( );
 	if ( !m_LightView->Initialize( ) )
 		return false;
-	m_LightView->SetAmbient( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	m_LightView->SetAmbient( common::Color( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	m_LightView->SetDiffuse( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_LightView->SetFocus( DirectX::XMFLOAT3( -2.0f, 0.0f, 0.0f ) );
 	m_LightView->SetPerspective( LightFOV, camNear, camFar, ( FLOAT ) SHADOW_WIDTH, ( FLOAT ) SHADOW_HEIGHT );
 	m_LightView->GenerateProjectionMatrix( );
+
+	m_LightView2 = new CLightView( );
+	if ( !m_LightView2->Initialize( ) )
+		return false;
+	m_LightView2->SetAmbient( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	m_LightView2->SetDiffuse( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
+	m_LightView2->SetFocus( DirectX::XMFLOAT3( -2.0f, 0.0f, 0.0f ) );
+	m_LightView2->SetPerspective( LightFOV, camNear, camFar, ( FLOAT ) SHADOW_WIDTH, ( FLOAT ) SHADOW_HEIGHT );
+	m_LightView2->GenerateProjectionMatrix( );
 	
 
 	return true;
@@ -138,6 +153,8 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 		delta *= -1;
 	LightX += delta * fFrameTime * 1.0f;
 	m_LightView->SetPosition( DirectX::XMFLOAT3( LightX, 3.0f, 0.0f ) );
+
+	m_LightView2->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, LightX ) );
 
 	m_Ground->Identity( );
 
@@ -182,8 +199,10 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 {
 	m_Camera->Render();
 	m_LightView->GenerateViewMatrix( );
+	m_LightView2->GenerateViewMatrix( );
 	m_d3d->DisableCulling( );
 
+	// First depthmap
 	m_Depthmap->SetRenderTarget( m_d3d->GetImmediateContext( ) );
 	m_Depthmap->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
 
@@ -199,26 +218,42 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
 		m_Cube->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ) );
 
-	m_Ground->Render( m_d3d->GetImmediateContext( ) );
+	// Second depthmap
+	m_Depthmap2->SetRenderTarget( m_d3d->GetImmediateContext( ) );
+	m_Depthmap2->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
 
+	m_Ground->Render( m_d3d->GetImmediateContext( ) );
+	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
+		m_Ground->GetWorld( ), m_LightView2->GetView( ), m_LightView2->GetProjection( ) );
+
+	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
+	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
+		m_Sphere->GetWorld( ), m_LightView2->GetView( ), m_LightView2->GetProjection( ) );
+
+	m_Cube->Render( m_d3d->GetImmediateContext( ) );
+	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
+		m_Cube->GetWorld( ), m_LightView2->GetView( ), m_LightView2->GetProjection( ) );
+
+	// Actual scene
 	m_d3d->ResetViewPort( );
 	m_d3d->EnableBackBuffer( );
 	m_d3d->BeginScene( );
 
 	m_Ground->Render( m_d3d->GetImmediateContext( ) );
-	m_ShadowShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
-		m_Ground->GetTexture( ), m_Depthmap->GetTexture( ), m_Ground->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView );
+	m_MultipleShadowShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
+		m_Ground->GetTexture( ), m_Depthmap->GetTexture( ), m_Depthmap2->GetTexture( ), m_Ground->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView, m_LightView2 );
 
 	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_ShadowShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
-		m_Sphere->GetTexture( ), m_Depthmap->GetTexture( ), m_Sphere->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView );
+	m_MultipleShadowShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
+		m_Sphere->GetTexture( ), m_Depthmap->GetTexture( ), m_Depthmap2->GetTexture( ), m_Sphere->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView, m_LightView2 );
 
 	m_Cube->Render( m_d3d->GetImmediateContext( ) );
-	m_ShadowShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
-		m_Cube->GetTexture( ), m_Depthmap->GetTexture( ), m_Cube->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView );
+	m_MultipleShadowShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
+		m_Cube->GetTexture( ), m_Depthmap->GetTexture( ), m_Depthmap2->GetTexture( ), m_Cube->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView, m_LightView2 );
+
 
 #pragma region Draw UI
 	m_d3d->EnableAlphaBlending( );
@@ -279,6 +314,9 @@ void CGraphics::Shutdown()
 	m_ShadowShader->Shutdown( );
 	delete m_ShadowShader;
 
+	m_MultipleShadowShader->Shutdown( );
+	delete m_MultipleShadowShader;
+
 	m_HorizontalBlur->Shutdown( );
 	delete m_HorizontalBlur;
 
@@ -301,6 +339,7 @@ void CGraphics::Shutdown()
 	delete m_ExponentialFogShader2;
 
 	delete Light;
+	delete PointLight;
 
 	m_Camera->Shutdown();
 	delete m_Camera;
@@ -326,7 +365,16 @@ void CGraphics::Shutdown()
 	m_Cube->Shutdown( );
 	delete m_Cursor;
 
+	m_LightView->Shutdown( );
+	delete m_LightView;
+
+	m_LightView2->Shutdown( );
+	delete m_LightView2;
+
 	m_Depthmap->Shutdown( );
+	delete m_Depthmap;
+
+	m_Depthmap2->Shutdown( );
 	delete m_Depthmap;
 
 	m_d3d->Shutdown();

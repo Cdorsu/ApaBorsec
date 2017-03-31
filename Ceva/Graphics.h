@@ -23,6 +23,7 @@
 #include "Sentence.h"
 #include "RenderTexture.h"
 #include "ShadowShader.h"
+#include "MultipleShadowShader.h"
 
 
 class CGraphics sealed
@@ -51,12 +52,14 @@ private:
 	CGlassShader *m_GlassShader;
 	CDepthShader *m_DepthShader;
 	CShadowShader *m_ShadowShader;
+	CMultipleShadowShader *m_MultipleShadowShader;
 	CHorizontalBlurShader *m_HorizontalBlur;
 	CVerticalBlurShader *m_VerticalBlur;
 	CInstanceShader *m_InstanceShader;
 	CCamera *m_Camera;
 	CLight *Light;
 	CLightView *m_LightView;
+	CLightView *m_LightView2;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
@@ -66,6 +69,7 @@ private:
 	CModel *m_Cube;
 	CModel *m_Sphere;
 	CRenderTexture *m_Depthmap;
+	CRenderTexture *m_Depthmap2;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
