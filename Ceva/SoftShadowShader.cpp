@@ -1,17 +1,17 @@
-#include "ShadowShader.h"
+#include "SoftShadowShader.h"
 
 
 
-CShadowShader::CShadowShader( )
+CSoftShadowShader::CSoftShadowShader( )
 {
-	ZeroMemory( this, sizeof( CShadowShader ) );
+	ZeroMemory( this, sizeof( CSoftShadowShader ) );
 }
 
-bool CShadowShader::Initialize( ID3D11Device * device, EType type )
+bool CSoftShadowShader::Initialize( ID3D11Device * device )
 {
 	ID3D10Blob *ShaderBlob = nullptr, *ErrorBlob = nullptr;
 	HRESULT hr = S_OK;
-	hr = D3DX11CompileFromFile( L"ShadowVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"SoftShadowVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ErrorBlob )
@@ -20,7 +20,7 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	}
 	/*hr = D3DReadFileToBlob( L"ShadowVertexShader.cso", &ShaderBlob );
 	if ( FAILED( hr ) )
-		return false;*/
+	return false;*/
 	hr = device->CreateVertexShader( ShaderBlob->GetBufferPointer( ), ShaderBlob->GetBufferSize( ), NULL, &VertexShader );
 	if ( FAILED( hr ) )
 		return false;
@@ -51,10 +51,7 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	if ( FAILED( hr ) )
 		return false;
 	SafeRelease( ShaderBlob );
-	if ( type == EType::Color )
-		hr = D3DX11CompileFromFile( L"ShadowPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
-	else
-		hr = D3DX11CompileFromFile( L"BWShadowPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"SoftShadowPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ErrorBlob )
@@ -63,7 +60,7 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	}
 	/*hr = D3DReadFileToBlob( L"ShadowPixelShader.cso", &ShaderBlob );
 	if ( FAILED( hr ) )
-		return false;*/
+	return false;*/
 	hr = device->CreatePixelShader( ShaderBlob->GetBufferPointer( ), ShaderBlob->GetBufferSize( ), NULL, &PixelShader );
 	if ( FAILED( hr ) )
 		return false;
@@ -108,8 +105,8 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	return true;
 }
 
-void CShadowShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
-	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Depthmap,
+void CSoftShadowShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
+	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Shadowmap,
 	DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
 	CLightView* Light )
 {
@@ -127,8 +124,6 @@ void CShadowShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	( ( SConstantBuffer* ) MappedResource.pData )->World = XMMatrixTranspose( World );
 	( ( SConstantBuffer* ) MappedResource.pData )->View = XMMatrixTranspose( View );
 	( ( SConstantBuffer* ) MappedResource.pData )->Projection = XMMatrixTranspose( Projection );
-	( ( SConstantBuffer* ) MappedResource.pData )->LightView = XMMatrixTranspose( Light->GetView( ) );
-	( ( SConstantBuffer* ) MappedResource.pData )->LightProjection = XMMatrixTranspose( Light->GetProjection( ) );
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
 
@@ -151,14 +146,14 @@ void CShadowShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	context->PSSetSamplers( 1, 1, &ClampSampler );
 
 	context->PSSetShaderResources( 0, 1, &Texture );
-	context->PSSetShaderResources( 1, 1, &Depthmap );
+	context->PSSetShaderResources( 1, 1, &Shadowmap );
 
 
 	context->DrawIndexed( IndexDrawAmount, 0, 0 );
 
 }
 
-void CShadowShader::OutputShaderError( ID3D10Blob * Error )
+void CSoftShadowShader::OutputShaderError( ID3D10Blob * Error )
 {
 	std::ofstream ofs( "ShaderError.txt" );
 	UINT Size = ( UINT ) Error->GetBufferSize( );
@@ -168,7 +163,7 @@ void CShadowShader::OutputShaderError( ID3D10Blob * Error )
 	ofs.close( );
 }
 
-void CShadowShader::Shutdown( )
+void CSoftShadowShader::Shutdown( )
 {
 	SafeRelease( VertexShader );
 	SafeRelease( PixelShader );
@@ -180,7 +175,7 @@ void CShadowShader::Shutdown( )
 	SafeRelease( PSLightBuffer );
 }
 
-CShadowShader::~CShadowShader( )
+CSoftShadowShader::~CSoftShadowShader( )
 {
 	Shutdown( );
 }

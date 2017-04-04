@@ -24,12 +24,13 @@
 #include "RenderTexture.h"
 #include "ShadowShader.h"
 #include "MultipleShadowShader.h"
+#include "SoftShadowShader.h"
 
 
 class CGraphics sealed
 {
 	static constexpr float camNear = 0.1f;
-	static constexpr float camFar = 100.0f;
+	static constexpr float camFar = 1000.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
 	static constexpr float LightFOV = 0.5f * FLOAT_PI;
 	static constexpr float SHADOW_WIDTH = 1024;
@@ -51,15 +52,16 @@ private:
 	CWaterShader *m_WaterShader;
 	CGlassShader *m_GlassShader;
 	CDepthShader *m_DepthShader;
-	CShadowShader *m_ShadowShader;
+	CShadowShader *m_ColorShadowShader;
+	CShadowShader *m_BWShadowShader;
 	CMultipleShadowShader *m_MultipleShadowShader;
+	CSoftShadowShader *m_SoftShadowShader;
 	CHorizontalBlurShader *m_HorizontalBlur;
 	CVerticalBlurShader *m_VerticalBlur;
 	CInstanceShader *m_InstanceShader;
 	CCamera *m_Camera;
 	CLight *Light;
 	CLightView *m_LightView;
-	CLightView *m_LightView2;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
@@ -68,8 +70,17 @@ private:
 	CModel *m_Ground;
 	CModel *m_Cube;
 	CModel *m_Sphere;
+
+	// Windows
+	BitmapClass *m_DownSampleWindow;
+	BitmapClass *m_UpSampleWindow;
+
+	// Textures
 	CRenderTexture *m_Depthmap;
-	CRenderTexture *m_Depthmap2;
+	CRenderTexture *m_DownSampleTexture;
+	CRenderTexture *m_VerticalBlurTexture;
+	CRenderTexture *m_HorizontalBlurTexture;
+	CRenderTexture *m_UpSampleTexture;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
