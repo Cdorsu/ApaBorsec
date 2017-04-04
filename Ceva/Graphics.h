@@ -25,6 +25,7 @@
 #include "ShadowShader.h"
 #include "MultipleShadowShader.h"
 #include "SoftShadowShader.h"
+#include "ProjectionShader.h"
 
 
 class CGraphics sealed
@@ -59,9 +60,9 @@ private:
 	CHorizontalBlurShader *m_HorizontalBlur;
 	CVerticalBlurShader *m_VerticalBlur;
 	CInstanceShader *m_InstanceShader;
+	CProjectionShader *m_ProjectionShader;
 	CCamera *m_Camera;
 	CLight *Light;
-	CLightView *m_LightView;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
@@ -70,17 +71,9 @@ private:
 	CModel *m_Ground;
 	CModel *m_Cube;
 	CModel *m_Sphere;
+	CLightView *m_LightView;
+	CTexture *m_ProjectionTexture;
 
-	// Windows
-	BitmapClass *m_DownSampleWindow;
-	BitmapClass *m_UpSampleWindow;
-
-	// Textures
-	CRenderTexture *m_Depthmap;
-	CRenderTexture *m_DownSampleTexture;
-	CRenderTexture *m_VerticalBlurTexture;
-	CRenderTexture *m_HorizontalBlurTexture;
-	CRenderTexture *m_UpSampleTexture;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;

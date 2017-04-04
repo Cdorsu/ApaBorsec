@@ -105,6 +105,9 @@
     <ClCompile Include="SoftShadowShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ProjectionShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DClass.h">
@@ -203,6 +206,9 @@
     <ClInclude Include="SoftShadowShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ProjectionShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -299,6 +305,12 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="SoftShadowPixelShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="ProjectionVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="ProjectionPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>
