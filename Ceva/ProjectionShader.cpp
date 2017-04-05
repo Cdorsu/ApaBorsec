@@ -1,17 +1,17 @@
-#include "ShadowShader.h"
+#include "ProjectionShader.h"
 
 
 
-CShadowShader::CShadowShader( )
+CProjectionShader::CProjectionShader( )
 {
-	ZeroMemory( this, sizeof( CShadowShader ) );
+	ZeroMemory( this, sizeof( CProjectionShader ) );
 }
 
-bool CShadowShader::Initialize( ID3D11Device * device, EType type )
+bool CProjectionShader::Initialize( ID3D11Device * device )
 {
 	ID3D10Blob *ShaderBlob = nullptr, *ErrorBlob = nullptr;
 	HRESULT hr = S_OK;
-	hr = D3DX11CompileFromFile( L"ShadowVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"ProjectionVertexShader.hlsl", NULL, NULL, "main", "vs_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ErrorBlob )
@@ -20,7 +20,7 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	}
 	/*hr = D3DReadFileToBlob( L"ShadowVertexShader.cso", &ShaderBlob );
 	if ( FAILED( hr ) )
-		return false;*/
+	return false;*/
 	hr = device->CreateVertexShader( ShaderBlob->GetBufferPointer( ), ShaderBlob->GetBufferSize( ), NULL, &VertexShader );
 	if ( FAILED( hr ) )
 		return false;
@@ -51,10 +51,7 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	if ( FAILED( hr ) )
 		return false;
 	SafeRelease( ShaderBlob );
-	if ( type == EType::Color )
-		hr = D3DX11CompileFromFile( L"ShadowPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
-	else
-		hr = D3DX11CompileFromFile( L"BWShadowPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
+	hr = D3DX11CompileFromFile( L"ProjectionPixelShader.hlsl", NULL, NULL, "main", "ps_4_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL );
 	if ( FAILED( hr ) )
 	{
 		if ( ErrorBlob )
@@ -63,24 +60,18 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	}
 	/*hr = D3DReadFileToBlob( L"ShadowPixelShader.cso", &ShaderBlob );
 	if ( FAILED( hr ) )
-		return false;*/
+	return false;*/
 	hr = device->CreatePixelShader( ShaderBlob->GetBufferPointer( ), ShaderBlob->GetBufferSize( ), NULL, &PixelShader );
 	if ( FAILED( hr ) )
 		return false;
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory( &sampDesc, sizeof( sampDesc ) );
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER;
 	sampDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
 	sampDesc.MaxAnisotropy = 16;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = 0;
 	sampDesc.MipLODBias = 3;
-	hr = device->CreateSamplerState( &sampDesc, &ClampSampler );
-	if ( FAILED( hr ) )
-		return false;
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
@@ -96,22 +87,14 @@ bool CShadowShader::Initialize( ID3D11Device * device, EType type )
 	hr = device->CreateBuffer( &buffDesc, NULL, &ConstantBuffer );
 	if ( FAILED( hr ) )
 		return false;
-	buffDesc.ByteWidth = sizeof( SLightVS );
-	hr = device->CreateBuffer( &buffDesc, NULL, &VSLightBuffer );
-	if ( FAILED( hr ) )
-		return false;
-	buffDesc.ByteWidth = sizeof( SLightPS );
-	hr = device->CreateBuffer( &buffDesc, NULL, &PSLightBuffer );
-	if ( FAILED( hr ) )
-		return false;
 
 	return true;
 }
 
-void CShadowShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
-	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Depthmap,
+void CProjectionShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
+	ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * ProjectionTexture,
 	DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-	CLightView* Light )
+	DirectX::XMMATRIX& View2, DirectX::XMMATRIX& Projection2 )
 {
 	using namespace DirectX;
 	static HRESULT hr;
@@ -127,38 +110,22 @@ void CShadowShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
 	( ( SConstantBuffer* ) MappedResource.pData )->World = XMMatrixTranspose( World );
 	( ( SConstantBuffer* ) MappedResource.pData )->View = XMMatrixTranspose( View );
 	( ( SConstantBuffer* ) MappedResource.pData )->Projection = XMMatrixTranspose( Projection );
-	( ( SConstantBuffer* ) MappedResource.pData )->LightView = XMMatrixTranspose( Light->GetView( ) );
-	( ( SConstantBuffer* ) MappedResource.pData )->LightProjection = XMMatrixTranspose( Light->GetProjection( ) );
+	( ( SConstantBuffer* ) MappedResource.pData )->View2 = XMMatrixTranspose( View2 );
+	( ( SConstantBuffer* ) MappedResource.pData )->Projection2 = XMMatrixTranspose( Projection2 );
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
 
-	hr = context->Map( VSLightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
-	if ( FAILED( hr ) )
-		return;
-	( ( SLightVS* ) MappedResource.pData )->Pos = Light->GetPosition( );
-	context->Unmap( VSLightBuffer, 0 );
-	context->VSSetConstantBuffers( 1, 1, &VSLightBuffer );
-
-	hr = context->Map( PSLightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
-	if ( FAILED( hr ) )
-		return;
-	( ( SLightPS* ) MappedResource.pData )->Diffuse = Light->GetDiffuse( );
-	( ( SLightPS* ) MappedResource.pData )->Ambient = Light->GetAmbient( );
-	context->Unmap( PSLightBuffer, 0 );
-	context->PSSetConstantBuffers( 0, 1, &PSLightBuffer );
-
 	context->PSSetSamplers( 0, 1, &WrapSampler );
-	context->PSSetSamplers( 1, 1, &ClampSampler );
 
 	context->PSSetShaderResources( 0, 1, &Texture );
-	context->PSSetShaderResources( 1, 1, &Depthmap );
+	context->PSSetShaderResources( 1, 1, &ProjectionTexture );
 
 
 	context->DrawIndexed( IndexDrawAmount, 0, 0 );
 
 }
 
-void CShadowShader::OutputShaderError( ID3D10Blob * Error )
+void CProjectionShader::OutputShaderError( ID3D10Blob * Error )
 {
 	std::ofstream ofs( "ShaderError.txt" );
 	UINT Size = ( UINT ) Error->GetBufferSize( );
@@ -168,19 +135,16 @@ void CShadowShader::OutputShaderError( ID3D10Blob * Error )
 	ofs.close( );
 }
 
-void CShadowShader::Shutdown( )
+void CProjectionShader::Shutdown( )
 {
 	SafeRelease( VertexShader );
 	SafeRelease( PixelShader );
 	SafeRelease( InputLayout );
-	SafeRelease( ClampSampler );
 	SafeRelease( WrapSampler );
 	SafeRelease( ConstantBuffer );
-	SafeRelease( VSLightBuffer );
-	SafeRelease( PSLightBuffer );
 }
 
-CShadowShader::~CShadowShader( )
+CProjectionShader::~CProjectionShader( )
 {
 	Shutdown( );
 }

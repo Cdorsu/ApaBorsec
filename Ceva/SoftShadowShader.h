@@ -12,7 +12,7 @@
 
 #include "LightView.h"
 
-class CShadowShader
+class CSoftShadowShader
 {
 private:
 	struct SConstantBuffer
@@ -20,8 +20,6 @@ private:
 		DirectX::XMMATRIX World;
 		DirectX::XMMATRIX View;
 		DirectX::XMMATRIX Projection;
-		DirectX::XMMATRIX LightView;
-		DirectX::XMMATRIX LightProjection;
 	};
 	struct SLightVS
 	{
@@ -33,12 +31,6 @@ private:
 		common::Color Diffuse;
 		common::Color Ambient;
 	};
-public:
-	enum EType
-	{
-		BlackWhite,
-		Color,
-	};
 private:
 	ID3D11VertexShader *VertexShader;
 	ID3D11PixelShader *PixelShader;
@@ -49,16 +41,16 @@ private:
 	ID3D11Buffer *PSLightBuffer;
 	ID3D11InputLayout *InputLayout;
 public:
-	CShadowShader( );
-	~CShadowShader( );
+	CSoftShadowShader();
+	~CSoftShadowShader();
 public:
-	bool Initialize( ID3D11Device * device, EType type );
-	void Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
-		ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Depthmap,
+	bool Initialize(ID3D11Device * device);
+	void Render(ID3D11DeviceContext * context, UINT IndexDrawAmount,
+		ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Shadowmap,
 		DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-		CLightView* Light );
-	void Shutdown( );
+		CLightView* Light);
+	void Shutdown();
 private:
-	void OutputShaderError( ID3D10Blob * Error );
+	void OutputShaderError(ID3D10Blob * Error);
 };
 

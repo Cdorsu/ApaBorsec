@@ -12,7 +12,7 @@
 
 #include "LightView.h"
 
-class CShadowShader
+class CProjectionShader
 {
 private:
 	struct SConstantBuffer
@@ -20,43 +20,24 @@ private:
 		DirectX::XMMATRIX World;
 		DirectX::XMMATRIX View;
 		DirectX::XMMATRIX Projection;
-		DirectX::XMMATRIX LightView;
-		DirectX::XMMATRIX LightProjection;
-	};
-	struct SLightVS
-	{
-		DirectX::XMFLOAT3 Pos;
-		float pad;
-	};
-	struct SLightPS
-	{
-		common::Color Diffuse;
-		common::Color Ambient;
-	};
-public:
-	enum EType
-	{
-		BlackWhite,
-		Color,
+		DirectX::XMMATRIX View2;
+		DirectX::XMMATRIX Projection2;
 	};
 private:
 	ID3D11VertexShader *VertexShader;
 	ID3D11PixelShader *PixelShader;
 	ID3D11SamplerState *WrapSampler;
-	ID3D11SamplerState *ClampSampler;
 	ID3D11Buffer *ConstantBuffer;
-	ID3D11Buffer *VSLightBuffer;
-	ID3D11Buffer *PSLightBuffer;
 	ID3D11InputLayout *InputLayout;
 public:
-	CShadowShader( );
-	~CShadowShader( );
+	CProjectionShader( );
+	~CProjectionShader( );
 public:
-	bool Initialize( ID3D11Device * device, EType type );
+	bool Initialize( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context, UINT IndexDrawAmount,
-		ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Depthmap,
+		ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * ProjectionTexture,
 		DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-		CLightView* Light );
+		DirectX::XMMATRIX& View2, DirectX::XMMATRIX& Projection2 );
 	void Shutdown( );
 private:
 	void OutputShaderError( ID3D10Blob * Error );

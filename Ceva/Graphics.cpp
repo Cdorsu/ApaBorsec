@@ -59,11 +59,17 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_DepthShader = new CDepthShader( );
 	if ( !m_DepthShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
-	m_ShadowShader = new CShadowShader( );
-	if ( !m_ShadowShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_ColorShadowShader = new CShadowShader( );
+	if ( !m_ColorShadowShader->Initialize( m_d3d->GetDevice( ), CShadowShader::EType::Color ) )
+		return false;
+	m_BWShadowShader = new CShadowShader( );
+	if ( !m_BWShadowShader->Initialize( m_d3d->GetDevice( ), CShadowShader::EType::BlackWhite ) )
 		return false;
 	m_MultipleShadowShader = new CMultipleShadowShader( );
 	if ( !m_MultipleShadowShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
+	m_SoftShadowShader = new CSoftShadowShader();
+	if (!m_SoftShadowShader->Initialize(m_d3d->GetDevice()))
 		return false;
 	m_HorizontalBlur = new CHorizontalBlurShader( );
 	if ( !m_HorizontalBlur->Initialize( m_d3d->GetDevice( ) ) )
@@ -73,6 +79,9 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		return false;
 	m_InstanceShader = new CInstanceShader( );
 	if ( !m_InstanceShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
+	m_ProjectionShader = new CProjectionShader( );
+	if ( !m_ProjectionShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
@@ -101,12 +110,8 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Sphere = new CModel( );
 	if ( !m_Sphere->Initialize( m_d3d->GetDevice( ), L"data\\sphere.txt", L"data\\wall01.dds" ) )
 		return false;
-
-	m_Depthmap = new CRenderTexture( );
-	if ( !m_Depthmap->Initialize( m_d3d->GetDevice( ), ( UINT ) SHADOW_WIDTH, ( UINT ) SHADOW_HEIGHT, LightFOV, camNear, camFar ) )
-		return false;
-	m_Depthmap2 = new CRenderTexture( );
-	if ( !m_Depthmap2->Initialize( m_d3d->GetDevice( ), ( UINT ) SHADOW_WIDTH, ( UINT ) SHADOW_HEIGHT, LightFOV, camNear, camFar ) )
+	m_ProjectionTexture = new CTexture( );
+	if ( !m_ProjectionTexture->Initialize( m_d3d->GetDevice( ), L"data\\Chrissy.jpg" ) )
 		return false;
 
 	Light = new CLight();
@@ -125,40 +130,34 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_LightView = new CLightView( );
 	if ( !m_LightView->Initialize( ) )
 		return false;
-	m_LightView->SetAmbient( common::Color( 0.1f, 0.1f, 0.1f, 1.0f ) );
-	m_LightView->SetDiffuse( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_LightView->SetFocus( DirectX::XMFLOAT3( -2.0f, 0.0f, 0.0f ) );
-	m_LightView->SetPerspective( LightFOV, camNear, camFar, ( FLOAT ) SHADOW_WIDTH, ( FLOAT ) SHADOW_HEIGHT );
+	m_LightView->SetFocus( DirectX::XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
+	m_LightView->SetPerspective( LightFOV, camNear, camFar, WindowWidth, WindowHeight );
+	m_LightView->SetPosition( DirectX::XMFLOAT3( -7.0f, 9.0f, -7.0f ) );
 	m_LightView->GenerateProjectionMatrix( );
-
-	m_LightView2 = new CLightView( );
-	if ( !m_LightView2->Initialize( ) )
-		return false;
-	m_LightView2->SetAmbient( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
-	m_LightView2->SetDiffuse( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_LightView2->SetFocus( DirectX::XMFLOAT3( -2.0f, 0.0f, 0.0f ) );
-	m_LightView2->SetPerspective( LightFOV, camNear, camFar, ( FLOAT ) SHADOW_WIDTH, ( FLOAT ) SHADOW_HEIGHT );
-	m_LightView2->GenerateProjectionMatrix( );
-	
+	m_LightView->GenerateViewMatrix( );
 
 	return true;
 }
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
+	static float Angle = 0.0f;
 	static float LightX = 0.0f;
 	static int delta = 1;
+
+	Angle += 1.0f * fFrameTime;
+	if ( Angle >= 2 * FLOAT_PI )
+		Angle = 0.0f;
 
 	if ( LightX > 7.0f || LightX < -7.0f )
 		delta *= -1;
 	LightX += delta * fFrameTime * 1.0f;
-	m_LightView->SetPosition( DirectX::XMFLOAT3( LightX, 3.0f, 0.0f ) );
-
-	m_LightView2->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, LightX ) );
 
 	m_Ground->Identity( );
+	m_Ground->Scale( 3.0f, 3.0f, 3.0f );
 
 	m_Cube->Identity( );
+	m_Cube->RotateY( Angle );
 	m_Cube->Translate( 0.0f, 1.0f, 0.0f );
 
 	m_Sphere->Identity( );
@@ -198,62 +197,26 @@ void CGraphics::Frame( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTim
 void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY )
 {
 	m_Camera->Render();
-	m_LightView->GenerateViewMatrix( );
-	m_LightView2->GenerateViewMatrix( );
 	m_d3d->DisableCulling( );
 
-	// First depthmap
-	m_Depthmap->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_Depthmap->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
-
-	m_Ground->Render( m_d3d->GetImmediateContext( ) );
-	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
-		m_Ground->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ));
-
-	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
-		m_Sphere->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ) );
-
-	m_Cube->Render( m_d3d->GetImmediateContext( ) );
-	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
-		m_Cube->GetWorld( ), m_LightView->GetView( ), m_LightView->GetProjection( ) );
-
-	// Second depthmap
-	m_Depthmap2->SetRenderTarget( m_d3d->GetImmediateContext( ) );
-	m_Depthmap2->BeginScene( m_d3d->GetImmediateContext( ), common::HexToRGB( 0x0 ) );
-
-	m_Ground->Render( m_d3d->GetImmediateContext( ) );
-	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
-		m_Ground->GetWorld( ), m_LightView2->GetView( ), m_LightView2->GetProjection( ) );
-
-	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
-		m_Sphere->GetWorld( ), m_LightView2->GetView( ), m_LightView2->GetProjection( ) );
-
-	m_Cube->Render( m_d3d->GetImmediateContext( ) );
-	m_DepthShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
-		m_Cube->GetWorld( ), m_LightView2->GetView( ), m_LightView2->GetProjection( ) );
-
-	// Actual scene
-	m_d3d->ResetViewPort( );
 	m_d3d->EnableBackBuffer( );
+	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
 	m_Ground->Render( m_d3d->GetImmediateContext( ) );
-	m_MultipleShadowShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ),
-		m_Ground->GetTexture( ), m_Depthmap->GetTexture( ), m_Depthmap2->GetTexture( ), m_Ground->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView, m_LightView2 );
-
-	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_MultipleShadowShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ),
-		m_Sphere->GetTexture( ), m_Depthmap->GetTexture( ), m_Depthmap2->GetTexture( ), m_Sphere->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView, m_LightView2 );
+	m_ProjectionShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetTexture( ),
+		m_ProjectionTexture->GetTexture( ), m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
+		m_LightView->GetView( ), m_LightView->GetProjection( ) );
 
 	m_Cube->Render( m_d3d->GetImmediateContext( ) );
-	m_MultipleShadowShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ),
-		m_Cube->GetTexture( ), m_Depthmap->GetTexture( ), m_Depthmap2->GetTexture( ), m_Cube->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_LightView, m_LightView2 );
+	m_ProjectionShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetTexture( ),
+		m_ProjectionTexture->GetTexture( ), m_Cube->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
+		m_LightView->GetView( ), m_LightView->GetProjection( ) );
 
+	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
+	m_ProjectionShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
+		m_ProjectionTexture->GetTexture( ), m_Sphere->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
+		m_LightView->GetView( ), m_LightView->GetProjection( ) );
 
 #pragma region Draw UI
 	m_d3d->EnableAlphaBlending( );
@@ -311,11 +274,17 @@ void CGraphics::Shutdown()
 	m_DepthShader->Shutdown( );
 	delete m_DepthShader;
 
-	m_ShadowShader->Shutdown( );
-	delete m_ShadowShader;
+	m_ColorShadowShader->Shutdown( );
+	delete m_ColorShadowShader;
+
+	m_BWShadowShader->Shutdown( );
+	delete m_BWShadowShader;
 
 	m_MultipleShadowShader->Shutdown( );
 	delete m_MultipleShadowShader;
+
+	m_SoftShadowShader->Shutdown();
+	delete m_SoftShadowShader;
 
 	m_HorizontalBlur->Shutdown( );
 	delete m_HorizontalBlur;
@@ -356,6 +325,9 @@ void CGraphics::Shutdown()
 	m_InstanceShader->Shutdown( );
 	delete m_InstanceShader;
 
+	m_ProjectionShader->Shutdown( );
+	delete m_InstanceShader;
+
 	m_Ground->Shutdown( );
 	delete m_Ground;
 
@@ -364,18 +336,6 @@ void CGraphics::Shutdown()
 
 	m_Cube->Shutdown( );
 	delete m_Cursor;
-
-	m_LightView->Shutdown( );
-	delete m_LightView;
-
-	m_LightView2->Shutdown( );
-	delete m_LightView2;
-
-	m_Depthmap->Shutdown( );
-	delete m_Depthmap;
-
-	m_Depthmap2->Shutdown( );
-	delete m_Depthmap;
 
 	m_d3d->Shutdown();
 	delete m_d3d;
