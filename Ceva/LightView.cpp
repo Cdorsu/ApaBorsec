@@ -24,6 +24,16 @@ void CLightView::GenerateProjectionMatrix( )
 	LightProjection = DirectX::XMMatrixPerspectiveFovLH( FOV, WindowWidth / WindowHeight, NearPlane, FarPlane );
 }
 
+void CLightView::SetView( DirectX::XMMATRIX& newView )
+{
+	this->LightView = newView;
+}
+
+void CLightView::SetProjection( DirectX::XMMATRIX& newProjection )
+{
+	this->LightProjection = newProjection;
+}
+
 void CLightView::SetPerspective( float FOV, float camNear, float camFar, float WindowWidth, float WindowHeight )
 {
 	this->FOV = FOV;

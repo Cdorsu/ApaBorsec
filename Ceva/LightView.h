@@ -30,6 +30,8 @@ public:
 	void GenerateViewMatrix( );
 	void GenerateProjectionMatrix( );
 public:
+	void SetView( DirectX::XMMATRIX& newView );
+	void SetProjection( DirectX::XMMATRIX& newProjection );
 	void SetPerspective( float FOV, float NearPlane, float FarPlane, float WindowWidth, float WindowHeight );
 	void SetPosition( DirectX::XMFLOAT3 Position );
 	void SetFocus( DirectX::XMFLOAT3 Focus );

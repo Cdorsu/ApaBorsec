@@ -136,6 +136,7 @@
     <ClCompile Include="LightView.cpp" />
     <ClCompile Include="MultipleShadowShader.cpp" />
     <ClCompile Include="ProjectionShader.cpp" />
+    <ClCompile Include="ProjectiveLightShader.cpp" />
     <ClCompile Include="ReflectionShader.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Sentence.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="MultipleShadowShader.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="ProjectionShader.h" />
+    <ClInclude Include="ProjectiveLightShader.h" />
     <ClInclude Include="ReflectionShader.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="resource.h" />
@@ -320,6 +322,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="ProjectionVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="ProjectiveLightingPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="ProjectiveLightingVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

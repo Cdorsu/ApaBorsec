@@ -26,6 +26,7 @@
 #include "MultipleShadowShader.h"
 #include "SoftShadowShader.h"
 #include "ProjectionShader.h"
+#include "ProjectiveLightShader.h"
 
 
 class CGraphics sealed
@@ -33,7 +34,7 @@ class CGraphics sealed
 	static constexpr float camNear = 0.1f;
 	static constexpr float camFar = 1000.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
-	static constexpr float LightFOV = 0.5f * FLOAT_PI;
+	static constexpr float LightFOV = 0.3f * FLOAT_PI;
 	static constexpr float SHADOW_WIDTH = 1024;
 	static constexpr float SHADOW_HEIGHT = 1024;
 private:
@@ -61,6 +62,7 @@ private:
 	CVerticalBlurShader *m_VerticalBlur;
 	CInstanceShader *m_InstanceShader;
 	CProjectionShader *m_ProjectionShader;
+	CProjectiveLightShader *m_ProjectiveLightShader;
 	CCamera *m_Camera;
 	CLight *Light;
 	CPointLight *PointLight;
@@ -73,6 +75,7 @@ private:
 	CModel *m_Sphere;
 	CLightView *m_LightView;
 	CTexture *m_ProjectionTexture;
+	CTexture *m_LightTexture;
 
 
 	UINT m_WindowWidth;
