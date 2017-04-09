@@ -37,7 +37,7 @@ float4 main ( PSIn input ) : SV_TARGET
         if ( howMuchLight > 0.0f )
         {
             float4 projectionColor = ObjLightmap.Sample ( ClampSampler, projectedTexCoord );
-            color = saturate ( Ambient + Diffuse * projectionColor );
+            color = saturate ( Ambient + Diffuse * projectionColor * howMuchLight );
             return color * textureColor;
         }
     }
