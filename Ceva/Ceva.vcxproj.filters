@@ -111,6 +111,15 @@
     <ClCompile Include="ProjectiveLightShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Glow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CombineTextureShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DClass.h">
@@ -213,6 +222,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProjectiveLightShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Glow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MaskShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CombineTextureShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -323,6 +341,18 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="ProjectiveLightingPS.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="MaskVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="MaskPixelShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="CombineTexturesVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="CombineTexturesPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

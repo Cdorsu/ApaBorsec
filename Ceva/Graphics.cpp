@@ -86,6 +86,12 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_ProjectiveLightShader = new CProjectiveLightShader( );
 	if ( !m_ProjectiveLightShader->Initialize( m_d3d->GetDevice( ) ) )
 		return false;
+	m_MaskShader = new CMaskShader( );
+	if ( !m_MaskShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
+	m_CombineTextureShader = new CCombineTextureShader( );
+	if ( !m_CombineTextureShader->Initialize( m_d3d->GetDevice( ) ) )
+		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
 		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f ))
@@ -102,22 +108,13 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_FrameTimeMessage = new CSentence();
 	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
 		return false;
-
-	// Models
-	m_Ground = new CModel( );
-	if ( !m_Ground->Initialize( m_d3d->GetDevice( ), L"data\\ground.txt", L"data\\ground01.dds" ) )
+	m_Button = new BitmapClass( );
+	if ( !m_Button->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, ButtonWidth, ButtonHeight ) )
 		return false;
-	m_Cube = new CModel( );
-	if ( !m_Cube->Initialize( m_d3d->GetDevice( ), L"data\\cube.txt", L"data\\marble01.dds" ) )
-		return false;
-	m_Sphere = new CModel( );
-	if ( !m_Sphere->Initialize( m_d3d->GetDevice( ), L"data\\sphere.txt", L"data\\wall01.dds" ) )
-		return false;
-	m_ProjectionTexture = new CTexture( );
-	if ( !m_ProjectionTexture->Initialize( m_d3d->GetDevice( ), L"data\\Chrissy.jpg" ) )
-		return false;
-	m_LightTexture = new CTexture( );
-	if ( !m_LightTexture->Initialize( m_d3d->GetDevice( ), L"data\\Spotlight.png" ) )
+	m_GlowTest = new CGlow( );
+	if ( !m_GlowTest->Initialize( m_d3d->GetDevice( ), L"data\\test.dds", L"data\\glowmap.dds",
+		m_HorizontalBlur, m_VerticalBlur, m_2DShader, m_MaskShader, m_CombineTextureShader,
+		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar ) )
 		return false;
 
 	Light = new CLight();
@@ -133,39 +130,11 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	PointLight->SetAttenuation( 0.4f, 0.2f, 0.0f );
 	PointLight->SetRange( 0.0f ); // disable point light
 
-	m_LightView = new CLightView( );
-	if ( !m_LightView->Initialize( ) )
-		return false;
-	m_LightView->SetFocus( DirectX::XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
-	m_LightView->SetPerspective( LightFOV, camNear, camFar, (FLOAT) WindowWidth, (FLOAT) WindowHeight );
-	m_LightView->SetPosition( DirectX::XMFLOAT3( -3.0f, 9.0f, -5.0f ) );
-	m_LightView->SetAmbient( common::Color( 0.2f, 0.2f, 0.2f, 1.0f ) );
-	m_LightView->SetDiffuse( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_LightView->GenerateProjectionMatrix( );
-	m_LightView->GenerateViewMatrix( );
-
 	return true;
 }
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
-	static float LightX = 0.0f;
-	static int delta = 1;
-
-	if ( LightX > 7.0f || LightX < -7.0f )
-		delta *= -1;
-	LightX += delta * fFrameTime * 1.0f;
-
-	m_Ground->Identity( );
-	m_Ground->Scale( 3.0f, 3.0f, 3.0f );
-
-	m_Cube->Identity( );
-	m_Cube->Translate( 0.0f, 1.0f, 0.0f );
-
-	m_Sphere->Identity( );
-	m_Sphere->Translate( -3.0f, 1.0f, 0.0f );
-
-	
 
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
 	static char buffer[ 500 ] = { 0 };
@@ -200,24 +169,15 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Camera->Render();
 	m_d3d->DisableCulling( );
 
+	m_GlowTest->Render( m_d3d->GetImmediateContext( ) );
+
 	m_d3d->EnableBackBuffer( );
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	m_Ground->Render( m_d3d->GetImmediateContext( ) );
-	m_ProjectiveLightShader->Render( m_d3d->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetTexture( ),
-		m_LightTexture->GetTexture( ), m_Ground->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
-		m_LightView );
-
-	m_Cube->Render( m_d3d->GetImmediateContext( ) );
-	m_ProjectiveLightShader->Render( m_d3d->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetTexture( ),
-		m_LightTexture->GetTexture( ), m_Cube->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
-		m_LightView );
-
-	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_ProjectiveLightShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
-		m_LightTexture->GetTexture( ), m_Sphere->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ),
-		m_LightView );
+	m_Button->Render( m_d3d->GetImmediateContext( ), 500, 650 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_GlowTest->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
 
 #pragma region Draw UI
 	m_d3d->EnableAlphaBlending( );
@@ -230,6 +190,14 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 			m_2DShader->Render( m_d3d->GetImmediateContext( ), m_Cheat->GetIndexCount( ), FontClass::GetTexture( ),
 				DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), common::HexToRGB( 0xFFFF00 ) );
 		}
+
+		m_FPSMessage->Render( m_d3d->GetImmediateContext( ) );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_FPSMessage->GetIndexCount( ), FontClass::GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), common::HexToRGB( 0xFFFF00 ) );
+
+		m_FrameTimeMessage->Render( m_d3d->GetImmediateContext( ) );
+		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_FrameTimeMessage->GetIndexCount( ), FontClass::GetTexture( ),
+			DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), common::HexToRGB( 0xFFFF00 ) );
 
 		m_Cursor->Render( m_d3d->GetImmediateContext( ), MouseX, MouseY );
 		m_2DShader->Render( m_d3d->GetImmediateContext( ), m_Cursor->GetIndexCount( ), m_Cursor->GetTexture( ),
@@ -247,6 +215,9 @@ void CGraphics::Shutdown()
 
 	m_Cheat->Shutdown();
 	delete m_Cheat;
+
+	m_GlowTest->Shutdown( );
+	delete m_GlowTest;
 
 	m_FrameTimeMessage->Shutdown();
 	delete m_FrameTimeMessage;
@@ -308,6 +279,12 @@ void CGraphics::Shutdown()
 	m_ExponentialFogShader2->Shutdown();
 	delete m_ExponentialFogShader2;
 
+	m_MaskShader->Shutdown( );
+	delete m_MaskShader;
+
+	m_CombineTextureShader->Shutdown( );
+	delete m_CombineTextureShader;
+
 	delete Light;
 	delete PointLight;
 
@@ -332,14 +309,8 @@ void CGraphics::Shutdown()
 	m_ProjectiveLightShader->Shutdown( );
 	delete m_ProjectiveLightShader;
 
-	m_Ground->Shutdown( );
-	delete m_Ground;
-
-	m_Sphere->Shutdown( );
-	delete m_Sphere;
-
-	m_Cube->Shutdown( );
-	delete m_Cursor;
+	m_Button->Shutdown( );
+	delete m_Button;
 
 	m_d3d->Shutdown();
 	delete m_d3d;

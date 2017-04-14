@@ -27,6 +27,9 @@
 #include "SoftShadowShader.h"
 #include "ProjectionShader.h"
 #include "ProjectiveLightShader.h"
+#include "MaskShader.h"
+#include "Glow.h"
+#include "CombineTextureShader.h"
 
 
 class CGraphics sealed
@@ -37,6 +40,8 @@ class CGraphics sealed
 	static constexpr float LightFOV = 0.3f * FLOAT_PI;
 	static constexpr float SHADOW_WIDTH = 1024;
 	static constexpr float SHADOW_HEIGHT = 1024;
+	static constexpr UINT ButtonWidth = 150;
+	static constexpr UINT ButtonHeight = 50;
 private:
 	D3DClass *m_d3d;
 	BitmapClass *m_Cursor;
@@ -63,20 +68,16 @@ private:
 	CInstanceShader *m_InstanceShader;
 	CProjectionShader *m_ProjectionShader;
 	CProjectiveLightShader *m_ProjectiveLightShader;
+	CMaskShader *m_MaskShader;
+	CCombineTextureShader *m_CombineTextureShader;
 	CCamera *m_Camera;
 	CLight *Light;
 	CPointLight *PointLight;
 	CSentence *m_FPSMessage;
 	CSentence *m_FrameTimeMessage;
 	CSentence *m_Cheat;
-	// Scene models
-	CModel *m_Ground;
-	CModel *m_Cube;
-	CModel *m_Sphere;
-	CLightView *m_LightView;
-	CTexture *m_ProjectionTexture;
-	CTexture *m_LightTexture;
-
+	BitmapClass *m_Button;
+	CGlow *m_GlowTest;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;

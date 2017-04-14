@@ -23,9 +23,16 @@ float4 main(PSIn input) : SV_TARGET
 	float4 color = float4 ( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	weight0 = 1.0f;
-	weight1 = 0.7f;
-	weight2 = 0.345f;
-	weight3 = 0.261f;
+	weight1 = 0.9f;
+	weight2 = 0.645f;
+	weight3 = 0.561f;
+
+    normalization = ( weight0 + 2.0f * ( weight1 + weight2 + weight3 ) );
+
+    weight0 /= normalization;
+    weight1 /= normalization;
+    weight2 /= normalization;
+    weight3 /= normalization;
 
 
 	color += ObjTexture.Sample ( Sampler, input.tex1 ) * weight3;

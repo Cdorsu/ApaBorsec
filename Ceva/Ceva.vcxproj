@@ -125,15 +125,18 @@
     <ClCompile Include="BitmapClass.cpp" />
     <ClCompile Include="C2DShader.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CombineTextureShader.cpp" />
     <ClCompile Include="commonmath.cpp" />
     <ClCompile Include="DepthShader.cpp" />
     <ClCompile Include="FogShader.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="GlassShader.cpp" />
+    <ClCompile Include="Glow.cpp" />
     <ClCompile Include="HorizontalBlurShader.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InstanceShader.cpp" />
     <ClCompile Include="LightView.cpp" />
+    <ClCompile Include="MaskShader.cpp" />
     <ClCompile Include="MultipleShadowShader.cpp" />
     <ClCompile Include="ProjectionShader.cpp" />
     <ClCompile Include="ProjectiveLightShader.cpp" />
@@ -158,17 +161,20 @@
     <ClInclude Include="BitmapClass.h" />
     <ClInclude Include="C2DShader.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CombineTextureShader.h" />
     <ClInclude Include="commonmath.h" />
     <ClInclude Include="DepthShader.h" />
     <ClInclude Include="FogShader.h" />
     <ClInclude Include="FontClass.h" />
     <ClInclude Include="GlassShader.h" />
+    <ClInclude Include="Glow.h" />
     <ClInclude Include="HorizontalBlurShader.h" />
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="InstanceShader.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightView.h" />
+    <ClInclude Include="MaskShader.h" />
     <ClInclude Include="MultipleShadowShader.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="ProjectionShader.h" />
@@ -214,6 +220,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="CombineTexturesPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="CombineTexturesVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="DepthPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -286,6 +304,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="MaskPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="MaskVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="MultipleShadowPixelShader.hlsl">
