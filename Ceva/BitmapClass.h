@@ -17,9 +17,11 @@ private:
 	{
 		DirectX::XMFLOAT3 Position;
 		DirectX::XMFLOAT2 Texture;
+		DirectX::XMFLOAT2 Axis;
 		Vertex( float x, float y, float z,
-			float u, float v )
-			:Position( x, y, z ), Texture( u, v ) {};
+			float u, float v,
+			float ax = 0.0f, float ay = 0.0f )
+			:Position( x, y, z ), Texture( u, v ), Axis( ax, ay ) {};
 	};
 private:
 	ID3D11Buffer *VertexBuffer, *IndexBuffer;

@@ -83,6 +83,11 @@ private:
 	CTexture ** m_ActiveTexture;
 	int m_iActiveTextureIndex = 0;
 
+	CTexture * m_FireFlare;
+	CTexture * m_AlphaFlare;
+
+	float m_fToAdd = 0.0f;
+
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	

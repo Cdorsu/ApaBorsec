@@ -18,7 +18,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
 		return false;
 	m_DebugWindow = new BitmapClass( );
-	if ( !m_DebugWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, 400, 400 ) )
+	if ( !m_DebugWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, 0.5f * WindowWidth, 0.5f * WindowHeight ) )
 		return false;
 	m_DebugWindowTexture = new CRenderTexture( );
 	if ( !m_DebugWindowTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
@@ -127,6 +127,13 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	}
 	m_ActiveTexture = &m_vecTextures[ 0 ];
 
+	m_FireFlare = new CTexture( );
+	if ( !m_FireFlare->Initialize( m_d3d->GetDevice( ), L"data\\flare.dds" ) )
+		return false;
+	m_AlphaFlare = new CTexture( );
+	if ( !m_AlphaFlare->Initialize( m_d3d->GetDevice( ), L"data\\flarealpha.dds" ) )
+		return false;
+
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -163,6 +170,18 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 		}
 		return false;
 	};
+	static int delta = 1.0f;
+	m_fToAdd += fFrameTime * delta;
+	if ( m_fToAdd > 1.0f )
+	{
+		m_fToAdd = 1.0f;
+		delta = -1;
+	}
+	else if ( m_fToAdd < 0.0f )
+	{
+		m_fToAdd = 0.0f;
+		delta = 1;
+	}
 	if ( _30FramesPassed( ) )
 	{
 		m_iActiveTextureIndex++;
@@ -211,6 +230,17 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), ( *m_ActiveTexture )->GetTexture( ),
 		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
 
+	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0, 0.5f * m_WindowHeight);
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_FireFlare->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+
+	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0.5f * m_WindowWidth, 0 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_AlphaFlare->GetTexture( ),
+		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+
+	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0.5f * m_WindowWidth, 0.5f * m_WindowHeight );
+	m_CombineTextureShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_FireFlare->GetTexture( ),
+		m_AlphaFlare->GetTexture( ), DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), m_fToAdd, 1.0f );
 
 #pragma region Draw UI
 	m_d3d->EnableAlphaBlending( );
@@ -251,6 +281,12 @@ void CGraphics::Shutdown()
 		m_vecTextures[ i ]->Shutdown( );
 		delete m_vecTextures[ i ];
 	}
+
+	m_FireFlare->Shutdown( );
+	delete m_FireFlare;
+	
+	m_AlphaFlare->Shutdown( );
+	delete m_AlphaFlare;
 
 	m_Cheat->Shutdown();
 	delete m_Cheat;

@@ -90,7 +90,7 @@ void CGlow::Render( ID3D11DeviceContext * context )
 	m_Button->Render( context, 0, 0 );
 	m_CombineTextureShader->Render( context, m_Button->GetIndexCount( ), m_Texture->GetTexture( ),
 		m_VerticalBlurTexture->GetTexture( ), DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ),
-		m_CombinedTextures->GetOrthoMatrix( ), DirectX::XMMatrixIdentity( ), 3.0f );
+		DirectX::XMMatrixIdentity( ), 0.0f, 3.0f );
 }
 
 ID3D11ShaderResourceView* CGlow::GetTexture( )

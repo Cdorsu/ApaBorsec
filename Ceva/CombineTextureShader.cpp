@@ -21,7 +21,7 @@ bool CCombineTextureShader::Initialize( ID3D11Device * device )
 	hr = device->CreateVertexShader( ShaderBlob->GetBufferPointer( ), ShaderBlob->GetBufferSize( ), NULL, &VertexShader );
 	if ( FAILED( hr ) )
 		return false;
-	D3D11_INPUT_ELEMENT_DESC layout[ 2 ];
+	D3D11_INPUT_ELEMENT_DESC layout[ 3 ];
 	layout[ 0 ].AlignedByteOffset = 0;
 	layout[ 0 ].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	layout[ 0 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
@@ -36,6 +36,13 @@ bool CCombineTextureShader::Initialize( ID3D11Device * device )
 	layout[ 1 ].InstanceDataStepRate = 0;
 	layout[ 1 ].SemanticIndex = 0;
 	layout[ 1 ].SemanticName = "TEXCOORD";
+	layout[ 2 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	layout[ 2 ].Format = DXGI_FORMAT_R32G32_FLOAT;
+	layout[ 2 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
+	layout[ 2 ].InputSlot = 0;
+	layout[ 2 ].InstanceDataStepRate = 0;
+	layout[ 2 ].SemanticIndex = 1;
+	layout[ 2 ].SemanticName = "TEXCOORD";
 	hr = device->CreateInputLayout( layout, sizeof( layout ) / sizeof( layout[ 0 ] ),
 		ShaderBlob->GetBufferPointer( ), ShaderBlob->GetBufferSize( ), &InputLayout );
 	if ( FAILED( hr ) )
@@ -84,8 +91,8 @@ bool CCombineTextureShader::Initialize( ID3D11Device * device )
 }
 
 void CCombineTextureShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount, ID3D11ShaderResourceView * texture,
-	ID3D11ShaderResourceView * glow, DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
-	DirectX::XMMATRIX& TextureWorld, float glowStrength )
+	ID3D11ShaderResourceView * glow, DirectX::XMMATRIX& World, DirectX::XMMATRIX& View,
+	DirectX::XMMATRIX& Projection, float toAdd, float glowStrength )
 {
 	using namespace DirectX;
 	static HRESULT hr;
@@ -99,7 +106,7 @@ void CCombineTextureShader::Render( ID3D11DeviceContext * context, UINT IndexDra
 	if ( FAILED( hr ) )
 		return;
 	( ( SConstantBuffer* ) MappedResource.pData )->WVP = XMMatrixTranspose( WVP );
-	( ( SConstantBuffer* ) MappedResource.pData )->TextureWorld = XMMatrixTranspose( TextureWorld );
+	( ( SConstantBuffer* ) MappedResource.pData )->ToAdd = toAdd;
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
 
