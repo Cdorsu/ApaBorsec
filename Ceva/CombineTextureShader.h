@@ -16,6 +16,7 @@ private:
 	struct SConstantBuffer
 	{
 		DirectX::XMMATRIX WVP;
+		DirectX::XMMATRIX TextureWorld;
 	};
 	struct SGlowInfo
 	{
@@ -35,8 +36,8 @@ public:
 public:
 	bool Initialize( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context, UINT IndexDrawAmount, ID3D11ShaderResourceView * texture,
-		ID3D11ShaderResourceView * glow, DirectX::XMMATRIX& World, DirectX::XMMATRIX& View,
-		DirectX::XMMATRIX& Projection, float glowStrength );
+		ID3D11ShaderResourceView * glow, DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
+		DirectX::XMMATRIX& TextureWorld, float glowStrength );
 	void Shutdown( );
 private:
 	void OutputShaderError( ID3D10Blob * Error );

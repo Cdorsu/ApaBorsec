@@ -79,6 +79,10 @@ private:
 	BitmapClass *m_Button;
 	CGlow *m_GlowTest;
 
+	std::vector<CTexture*> m_vecTextures;
+	CTexture ** m_ActiveTexture;
+	int m_iActiveTextureIndex = 0;
+
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	

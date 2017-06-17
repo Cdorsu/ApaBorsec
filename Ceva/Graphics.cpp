@@ -117,6 +117,16 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar ) )
 		return false;
 
+	for ( unsigned int i = 1; i <= 120; ++i )
+	{
+		wchar_t buffer[ 100 ];
+		swprintf_s( buffer, L"data\\FireAnim\\Fire%03d.bmp", i );
+		m_vecTextures.emplace_back( new CTexture( ) );
+		if ( !m_vecTextures[ i - 1 ]->Initialize( m_d3d->GetDevice( ), buffer ) )
+			return false;
+	}
+	m_ActiveTexture = &m_vecTextures[ 0 ];
+
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -135,7 +145,31 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
-
+	auto _30FramesPassed = [ ]( ) -> bool
+	{
+		static LARGE_INTEGER StartTime = { 0 };
+		static LARGE_INTEGER Frequency = { 0 };
+		if ( StartTime.QuadPart == 0 )
+			QueryPerformanceCounter( &StartTime );
+		if ( Frequency.QuadPart == 0 )
+			QueryPerformanceFrequency( &Frequency );
+		LARGE_INTEGER CurrentTime;
+		QueryPerformanceCounter( &CurrentTime );
+		float Difference = ( float ) ( CurrentTime.QuadPart - StartTime.QuadPart ) / Frequency.QuadPart;
+		if ( Difference > 1 / 30.f )
+		{
+			StartTime = CurrentTime;
+			return true;
+		}
+		return false;
+	};
+	if ( _30FramesPassed( ) )
+	{
+		m_iActiveTextureIndex++;
+		if ( m_iActiveTextureIndex >= 120 )
+			m_iActiveTextureIndex = 0;
+		m_ActiveTexture = &m_vecTextures[ m_iActiveTextureIndex ];
+	}
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
 	static char buffer[ 500 ] = { 0 };
 	sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
@@ -169,15 +203,14 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Camera->Render();
 	m_d3d->DisableCulling( );
 
-	m_GlowTest->Render( m_d3d->GetImmediateContext( ) );
-
 	m_d3d->EnableBackBuffer( );
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	m_Button->Render( m_d3d->GetImmediateContext( ), 500, 650 );
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_GlowTest->GetTexture( ),
+	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), ( *m_ActiveTexture )->GetTexture( ),
 		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+
 
 #pragma region Draw UI
 	m_d3d->EnableAlphaBlending( );
@@ -212,6 +245,12 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
+
+	for ( UINT i = 0; i < m_vecTextures.size( ); ++i )
+	{
+		m_vecTextures[ i ]->Shutdown( );
+		delete m_vecTextures[ i ];
+	}
 
 	m_Cheat->Shutdown();
 	delete m_Cheat;

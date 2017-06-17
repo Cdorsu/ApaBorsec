@@ -84,8 +84,8 @@ bool CCombineTextureShader::Initialize( ID3D11Device * device )
 }
 
 void CCombineTextureShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount, ID3D11ShaderResourceView * texture,
-	ID3D11ShaderResourceView * glow, DirectX::XMMATRIX& World, DirectX::XMMATRIX& View,
-	DirectX::XMMATRIX& Projection, float glowStrength )
+	ID3D11ShaderResourceView * glow, DirectX::XMMATRIX& World, DirectX::XMMATRIX& View, DirectX::XMMATRIX& Projection,
+	DirectX::XMMATRIX& TextureWorld, float glowStrength )
 {
 	using namespace DirectX;
 	static HRESULT hr;
@@ -99,6 +99,7 @@ void CCombineTextureShader::Render( ID3D11DeviceContext * context, UINT IndexDra
 	if ( FAILED( hr ) )
 		return;
 	( ( SConstantBuffer* ) MappedResource.pData )->WVP = XMMatrixTranspose( WVP );
+	( ( SConstantBuffer* ) MappedResource.pData )->TextureWorld = XMMatrixTranspose( TextureWorld );
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
 
