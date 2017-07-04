@@ -116,79 +116,44 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 		m_HorizontalBlur, m_VerticalBlur, m_2DShader, m_MaskShader, m_CombineTextureShader,
 		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar ) )
 		return false;
-
-	for ( unsigned int i = 1; i <= 120; ++i )
-	{
-		wchar_t buffer[ 100 ];
-		swprintf_s( buffer, L"data\\FireAnim\\Fire%03d.bmp", i );
-		m_vecTextures.emplace_back( new CTexture( ) );
-		if ( !m_vecTextures[ i - 1 ]->Initialize( m_d3d->GetDevice( ), buffer ) )
-			return false;
-	}
-	m_ActiveTexture = &m_vecTextures[ 0 ];
-
-	m_FireFlare = new CTexture( );
-	if ( !m_FireFlare->Initialize( m_d3d->GetDevice( ), L"data\\flare.dds" ) )
+	m_Sphere = new CModel( );
+	if ( !m_Sphere->Initialize( m_d3d->GetDevice( ), L"data\\sphere.txt", L"data\\marble01.dds" ) )
 		return false;
-	m_AlphaFlare = new CTexture( );
-	if ( !m_AlphaFlare->Initialize( m_d3d->GetDevice( ), L"data\\flarealpha.dds" ) )
+	m_Sphere->Translate( 0.0f, -2.0f, -10.0f );
+	m_Floor = new CModel( );
+	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\checkboard.dds" ) )
 		return false;
+	m_Floor->Translate( 0.f, -5.f, -10.f );
+	m_Wall = new CModel( );
+	if ( !m_Wall->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\brick01.dds" ) )
+		return false;
+	m_Wall->RotateX( -FLOAT_PI / 2 );
+	m_Wall->Translate( 0.0f, 0.0f, 5.0f );
+	m_Mirror = new CModel( );
+	if ( !m_Mirror->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\blue01.dds" ) )
+		return false;
+	m_Mirror->RotateX( -FLOAT_PI / 2 );
+	m_Mirror->Translate( 0.0f, 0.0f, 0.0f );
+	m_Mirror->Scale( 0.5f, 0.5f, 0.5f );
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
 	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	Light->SetDiffuseColor( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	Light->SetDirection( DirectX::XMFLOAT3( 0.5f, -1.0f, 1.0f ) );
+	Light->SetDirection( DirectX::XMFLOAT3( 1.0f, -1.0f, 1.0f ) );
 	Light->SetSpecularPower( 32.0f );
 
 	PointLight = new CPointLight( );
 	PointLight->SetPosition( DirectX::XMFLOAT3( 0.0f, 3.0f, -10.0f ) );
 	PointLight->SetDiffuseColor( common::HexToRGB( 0x0000FF ) );
 	PointLight->SetAttenuation( 0.4f, 0.2f, 0.0f );
-	PointLight->SetRange( 0.0f ); // disable point light
+	PointLight->SetRange( 0 ); // disable point light
 
 	return true;
 }
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
-	auto _30FramesPassed = [ ]( ) -> bool
-	{
-		static LARGE_INTEGER StartTime = { 0 };
-		static LARGE_INTEGER Frequency = { 0 };
-		if ( StartTime.QuadPart == 0 )
-			QueryPerformanceCounter( &StartTime );
-		if ( Frequency.QuadPart == 0 )
-			QueryPerformanceFrequency( &Frequency );
-		LARGE_INTEGER CurrentTime;
-		QueryPerformanceCounter( &CurrentTime );
-		float Difference = ( float ) ( CurrentTime.QuadPart - StartTime.QuadPart ) / Frequency.QuadPart;
-		if ( Difference > 1 / 30.f )
-		{
-			StartTime = CurrentTime;
-			return true;
-		}
-		return false;
-	};
-	static int delta = 1.0f;
-	m_fToAdd += fFrameTime * delta;
-	if ( m_fToAdd > 1.0f )
-	{
-		m_fToAdd = 1.0f;
-		delta = -1;
-	}
-	else if ( m_fToAdd < 0.0f )
-	{
-		m_fToAdd = 0.0f;
-		delta = 1;
-	}
-	if ( _30FramesPassed( ) )
-	{
-		m_iActiveTextureIndex++;
-		if ( m_iActiveTextureIndex >= 120 )
-			m_iActiveTextureIndex = 0;
-		m_ActiveTexture = &m_vecTextures[ m_iActiveTextureIndex ];
-	}
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
 	static char buffer[ 500 ] = { 0 };
 	sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
@@ -226,24 +191,43 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0, 0 );
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), ( *m_ActiveTexture )->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+	//m_Wall->Render( m_d3d->GetImmediateContext( ) );
+	//m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
+		//m_Wall->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
-	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0, 0.5f * m_WindowHeight);
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_FireFlare->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+	m_Floor->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ), m_Floor->GetTexture( ),
+		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
-	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0.5f * m_WindowWidth, 0 );
-	m_2DShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_AlphaFlare->GetTexture( ),
-		DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ) );
+	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
+		m_Sphere->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
-	m_DebugWindow->Render( m_d3d->GetImmediateContext( ), 0.5f * m_WindowWidth, 0.5f * m_WindowHeight );
-	m_CombineTextureShader->Render( m_d3d->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ), m_FireFlare->GetTexture( ),
-		m_AlphaFlare->GetTexture( ), DirectX::XMMatrixIdentity( ), DirectX::XMMatrixIdentity( ), m_d3d->GetOrthoMatrix( ), m_fToAdd, 1.0f );
+	m_d3d->DisableRenderTargetWrite( );
+	m_d3d->WriteToStencil( );
+	m_Mirror->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Mirror->GetIndexCount( ), m_Mirror->GetTexture( ),
+		m_Mirror->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_d3d->DisableSkyRendering( );
+	m_d3d->DisableAlphaBlending( );
+
+
+	m_d3d->DisableCulling( );
+	m_d3d->EnableMirrorRendering( );
+	DirectX::XMMATRIX R = DirectX::XMMatrixReflect( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ) );
+	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
+		m_Sphere->GetWorld( ) * R, m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_d3d->DisableSkyRendering( );
+	m_d3d->EnableBackFaceCulling( );
+
+	m_d3d->EnableTransparency( );
+	m_Mirror->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Mirror->GetIndexCount( ), m_Mirror->GetTexture( ),
+		 m_Mirror->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
 
 #pragma region Draw UI
-	m_d3d->EnableAlphaBlending( );
+	//m_d3d->EnableAlphaBlending( );
 
 	if ( RenderMenu )
 	{
@@ -275,18 +259,18 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
-
-	for ( UINT i = 0; i < m_vecTextures.size( ); ++i )
-	{
-		m_vecTextures[ i ]->Shutdown( );
-		delete m_vecTextures[ i ];
-	}
-
-	m_FireFlare->Shutdown( );
-	delete m_FireFlare;
 	
-	m_AlphaFlare->Shutdown( );
-	delete m_AlphaFlare;
+	m_Sphere->Shutdown( );
+	delete m_Sphere;
+	
+	m_Wall->Shutdown( );
+	delete m_Wall;
+
+	m_Floor->Shutdown( );
+	delete m_Floor;
+
+	m_Mirror->Shutdown( );
+	delete m_Mirror;
 
 	m_Cheat->Shutdown();
 	delete m_Cheat;

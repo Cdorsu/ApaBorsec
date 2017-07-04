@@ -40,6 +40,8 @@ float4 main( PSIn input ) : SV_TARGET
 {
 	float4 textureColor = ObjTexture.Sample( Sampler,input.Tex );
 	clip ( textureColor.a - 0.25f );
+    textureColor.a = 0.5f;
+    return textureColor;
 	float4 color = Sun.Ambient;
 	float3 lightDir = -Sun.Direction;
 

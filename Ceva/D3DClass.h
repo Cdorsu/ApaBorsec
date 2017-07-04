@@ -33,6 +33,10 @@ __declspec(align(16)) class D3DClass
 	ID3D11BlendState *AlphaBlendingEnabled;
 	ID3D11DepthStencilState *DSDefaultState;
 	ID3D11DepthStencilState *DSLessEqual;
+	ID3D11DepthStencilState *DSWriteStencil;
+	ID3D11DepthStencilState *DSDrawReflection;
+	ID3D11BlendState *NoRenderTargetWrite;
+	ID3D11BlendState *Transparency;
 	D3D11_VIEWPORT DefaultViewPort;
 	LPWSTR m_GPU;
 	UINT m_VideoMemory;
@@ -53,13 +57,26 @@ public:
 	inline void DisableCulling() { m_d3d11DeviceContext->RSSetState( NoCulling ); };
 	inline void EnableWireframe( ) { m_d3d11DeviceContext->RSSetState( Wireframe ); };
 	inline void EnableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( DSLessEqual, 0 ); };
-	inline void DisableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( DSDefaultState, 0 ); };
+	inline void DisableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( 0, 0 ); };
 	inline void DisableAlphaBlending() { m_d3d11DeviceContext->OMSetBlendState( NULL, NULL, 0xffffffff ); };
+	inline void EnableTransparency( ) { m_d3d11DeviceContext->OMSetBlendState( Transparency, NULL, 0xffffffff ); }
 	inline void EnableAlphaBlending()
 	{
 		D3DXCOLOR blendFactor = { 0.0f, 0.0f, 0.0f, 0.0f };
 		m_d3d11DeviceContext->OMSetBlendState( AlphaBlendingEnabled, blendFactor, 0xffffffff );
 	};
+	inline void DisableRenderTargetWrite( )
+	{
+		m_d3d11DeviceContext->OMSetBlendState( NoRenderTargetWrite, nullptr, 0xffffffff );
+	}
+	inline void WriteToStencil( )
+	{
+		m_d3d11DeviceContext->OMSetDepthStencilState( DSWriteStencil, 1 );
+	}
+	inline void EnableMirrorRendering( )
+	{
+		m_d3d11DeviceContext->OMSetDepthStencilState( DSDrawReflection, 1 );
+	}
 	inline void EnableBackBuffer()
 	{
 		m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_RenderTargetView, m_DepthStencilView );
@@ -71,6 +88,10 @@ public:
 	inline void EnablePointListRendering( )
 	{
 		m_d3d11DeviceContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_POINTLIST );
+	}
+	inline void ClearStencil( )
+	{
+		m_d3d11DeviceContext->ClearDepthStencilView( m_DepthStencilView, D3D11_CLEAR_FLAG::D3D11_CLEAR_STENCIL, 0.0f, 0 );
 	}
 	inline ID3D11DepthStencilView* GetDepthStencilView() { return m_DepthStencilView; };
 	inline DirectX::XMMATRIX& GetOrthoMatrix() { return m_OrthoMatrix; };
