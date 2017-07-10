@@ -30,13 +30,15 @@ __declspec(align(16)) class D3DClass
 	ID3D11DeviceContext *m_d3d11DeviceContext;
 	ID3D11RasterizerState *NoCulling;
 	ID3D11RasterizerState *Wireframe;
-	ID3D11BlendState *AlphaBlendingEnabled;
 	ID3D11DepthStencilState *DSDefaultState;
 	ID3D11DepthStencilState *DSLessEqual;
 	ID3D11DepthStencilState *DSWriteStencil;
 	ID3D11DepthStencilState *DSDrawReflection;
+	ID3D11DepthStencilState *DSDrawShadow;
+	ID3D11BlendState *AlphaBlendingEnabled;
 	ID3D11BlendState *NoRenderTargetWrite;
 	ID3D11BlendState *Transparency;
+	ID3D11BlendState *ShadowRendering;
 	D3D11_VIEWPORT DefaultViewPort;
 	LPWSTR m_GPU;
 	UINT m_VideoMemory;
@@ -60,6 +62,12 @@ public:
 	inline void DisableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( 0, 0 ); };
 	inline void DisableAlphaBlending() { m_d3d11DeviceContext->OMSetBlendState( NULL, NULL, 0xffffffff ); };
 	inline void EnableTransparency( ) { m_d3d11DeviceContext->OMSetBlendState( Transparency, NULL, 0xffffffff ); }
+	inline void EnableShadowRendering( ) 
+	{
+		D3DXCOLOR blendFactor = { 0.5f, 0.5f, 0.5f, 0.5f };
+		m_d3d11DeviceContext->OMSetBlendState( ShadowRendering, blendFactor, 0xffffffff );
+		m_d3d11DeviceContext->OMSetDepthStencilState( DSDrawShadow, 0 );
+	};
 	inline void EnableAlphaBlending()
 	{
 		D3DXCOLOR blendFactor = { 0.0f, 0.0f, 0.0f, 0.0f };

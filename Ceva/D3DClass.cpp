@@ -239,6 +239,41 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	hr = m_d3d11Device->CreateBlendState( &transparentDesc, &Transparency );
 	if ( FAILED( hr ) )
 		return false;
+	
+	D3D11_BLEND_DESC shadowblendDesc = { 0 };
+	shadowblendDesc.AlphaToCoverageEnable = false;
+	shadowblendDesc.IndependentBlendEnable = false;
+
+	shadowblendDesc.RenderTarget[ 0 ].BlendEnable = true;
+	shadowblendDesc.RenderTarget[ 0 ].SrcBlend = D3D11_BLEND_BLEND_FACTOR;
+	shadowblendDesc.RenderTarget[ 0 ].DestBlend = D3D11_BLEND_SRC_COLOR;
+	shadowblendDesc.RenderTarget[ 0 ].BlendOp = D3D11_BLEND_OP_ADD;
+	shadowblendDesc.RenderTarget[ 0 ].SrcBlendAlpha = D3D11_BLEND_ZERO;
+	shadowblendDesc.RenderTarget[ 0 ].DestBlendAlpha = D3D11_BLEND_ZERO;
+	shadowblendDesc.RenderTarget[ 0 ].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	shadowblendDesc.RenderTarget[ 0 ].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	hr = m_d3d11Device->CreateBlendState( &shadowblendDesc, &ShadowRendering );
+	if ( FAILED( hr ) )
+		return false;
+
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
+	dsDesc.StencilEnable = TRUE;
+	dsDesc.StencilReadMask = 0xff;
+	dsDesc.StencilWriteMask = 0xff;
+	dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_INCR;
+	dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_EQUAL;
+	// Not used
+	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_INCR;
+	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_EQUAL;
+	hr = m_d3d11Device->CreateDepthStencilState( &dsDesc, &DSDrawShadow );
+	if ( FAILED( hr ) )
+		return false;
 
 	Output->Release();
 	Factory->Release();
@@ -263,7 +298,9 @@ void D3DClass::Shutdown()
 	SafeRelease( NoRenderTargetWrite );
 	SafeRelease( DSWriteStencil );
 	SafeRelease( DSDrawReflection );
+	SafeRelease( DSDrawShadow );
 	SafeRelease( Transparency );
+	SafeRelease( ShadowRendering );
 }
 
 void D3DClass::BeginScene()

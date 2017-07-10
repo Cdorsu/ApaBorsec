@@ -119,11 +119,11 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_Sphere = new CModel( );
 	if ( !m_Sphere->Initialize( m_d3d->GetDevice( ), L"data\\sphere.txt", L"data\\marble01.dds" ) )
 		return false;
-	m_Sphere->Translate( 0.0f, -2.0f, -10.0f );
+	m_Sphere->Translate( 0.0f, 2.0f, -10.0f );
 	m_Floor = new CModel( );
 	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\checkboard.dds" ) )
 		return false;
-	m_Floor->Translate( 0.f, -5.f, -10.f );
+	m_Floor->Translate( 0.f, 0.f, -10.f );
 	m_Wall = new CModel( );
 	if ( !m_Wall->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\brick01.dds" ) )
 		return false;
@@ -133,7 +133,7 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	if ( !m_Mirror->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\blue01.dds" ) )
 		return false;
 	m_Mirror->RotateX( -FLOAT_PI / 2 );
-	m_Mirror->Translate( 0.0f, 0.0f, 0.0f );
+	m_Mirror->Translate( 0.0f, 5.0f, 0.0f );
 	m_Mirror->Scale( 0.5f, 0.5f, 0.5f );
 
 	Light = new CLight();
@@ -225,6 +225,16 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Mirror->Render( m_d3d->GetImmediateContext( ) );
 	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Mirror->GetIndexCount( ), m_Mirror->GetTexture( ),
 		 m_Mirror->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_d3d->DisableAlphaBlending( );
+
+	m_d3d->EnableShadowRendering( );
+	DirectX::XMVECTOR Plane = DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 0.0f );
+	DirectX::XMVECTOR LightPos = DirectX::XMVectorSet( 0.0f, 9.0f, 0.0f, 1.0f );
+	DirectX::XMMATRIX Shadow = DirectX::XMMatrixShadow( Plane, LightPos );
+	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
+	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
+		m_Sphere->GetWorld( ) * Shadow * DirectX::XMMatrixTranslation( 0.0f, 0.001f, 0.0f ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_d3d->DisableSkyRendering( );
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
