@@ -39,6 +39,7 @@ __declspec(align(16)) class D3DClass
 	ID3D11BlendState *NoRenderTargetWrite;
 	ID3D11BlendState *Transparency;
 	ID3D11BlendState *ShadowRendering;
+	ID3D11BlendState *AlphaToCoverage;
 	D3D11_VIEWPORT DefaultViewPort;
 	LPWSTR m_GPU;
 	UINT m_VideoMemory;
@@ -61,7 +62,8 @@ public:
 	inline void EnableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( DSLessEqual, 0 ); };
 	inline void DisableSkyRendering( ) { m_d3d11DeviceContext->OMSetDepthStencilState( 0, 0 ); };
 	inline void DisableAlphaBlending() { m_d3d11DeviceContext->OMSetBlendState( NULL, NULL, 0xffffffff ); };
-	inline void EnableTransparency( ) { m_d3d11DeviceContext->OMSetBlendState( Transparency, NULL, 0xffffffff ); }
+	inline void EnableTransparency() { m_d3d11DeviceContext->OMSetBlendState(Transparency, NULL, 0xffffffff); };
+	inline void EnableAlphaToCoverage() { m_d3d11DeviceContext->OMSetBlendState(AlphaToCoverage, NULL, 0xffffffff); };
 	inline void EnableShadowRendering( ) 
 	{
 		D3DXCOLOR blendFactor = { 0.5f, 0.5f, 0.5f, 0.5f };

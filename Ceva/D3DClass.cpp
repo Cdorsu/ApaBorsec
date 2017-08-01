@@ -72,7 +72,13 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD;
 	SwapChainDesc.Windowed = TRUE;
 
-	hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, NULL, NULL,
+	UINT flags = D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_SINGLETHREADED;
+
+#if DEBUG || _DEBUG
+	flags |= D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+	hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, NULL, flags,
 		NULL, 0, D3D11_SDK_VERSION, &SwapChainDesc, &m_SwapChain, &m_d3d11Device, NULL, &m_d3d11DeviceContext);
 	if (FAILED( hr ))
 		return false;
@@ -256,6 +262,15 @@ bool D3DClass::Initialize( HINSTANCE hInstance, HWND hWnd, UINT Width, UINT Heig
 	if ( FAILED( hr ) )
 		return false;
 
+	D3D11_BLEND_DESC alphaDesc = { 0 };
+	alphaDesc.AlphaToCoverageEnable = true;
+	alphaDesc.IndependentBlendEnable = false;
+	alphaDesc.RenderTarget[0].BlendEnable = false;
+	alphaDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	hr = m_d3d11Device->CreateBlendState(&alphaDesc, &AlphaToCoverage);
+	if (FAILED(hr))
+		return false;
+
 	dsDesc.DepthEnable = TRUE;
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
@@ -301,6 +316,7 @@ void D3DClass::Shutdown()
 	SafeRelease( DSDrawShadow );
 	SafeRelease( Transparency );
 	SafeRelease( ShadowRendering );
+	SafeRelease(AlphaToCoverage);
 }
 
 void D3DClass::BeginScene()

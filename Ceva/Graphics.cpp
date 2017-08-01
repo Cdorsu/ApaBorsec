@@ -7,33 +7,33 @@ CGraphics::CGraphics()
 	ZeroMemory( this, sizeof( CGraphics ) );
 }
 
-bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UINT WindowHeight )
+bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UINT WindowHeight)
 {
 	m_WindowWidth = WindowWidth;
 	m_WindowHeight = WindowHeight;
 	m_d3d = new D3DClass();
-	if (!m_d3d->Initialize( hInstance, hWnd, WindowWidth, WindowHeight, camNear, camFar ))
+	if (!m_d3d->Initialize(hInstance, hWnd, WindowWidth, WindowHeight, camNear, camFar))
 		return false;
 	m_Cursor = new BitmapClass();
-	if (!m_Cursor->Initialize( m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32 ))
+	if (!m_Cursor->Initialize(m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32))
 		return false;
-	m_DebugWindow = new BitmapClass( );
-	if ( !m_DebugWindow->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, 0.5f * WindowWidth, 0.5f * WindowHeight ) )
+	m_DebugWindow = new BitmapClass();
+	if (!m_DebugWindow->Initialize(m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, 0.5f * WindowWidth, 0.5f * WindowHeight))
 		return false;
-	m_DebugWindowTexture = new CRenderTexture( );
-	if ( !m_DebugWindowTexture->Initialize( m_d3d->GetDevice( ), WindowWidth, WindowHeight, FOV, camNear, camFar ) )
+	m_DebugWindowTexture = new CRenderTexture();
+	if (!m_DebugWindowTexture->Initialize(m_d3d->GetDevice(), WindowWidth, WindowHeight, FOV, camNear, camFar))
 		return false;
 	m_NoPlaneClippingShader = new CSimpleShader();
-	if (!m_NoPlaneClippingShader->Initialize( m_d3d->GetDevice() ))
+	if (!m_NoPlaneClippingShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_PlaneClippingShader = new CSimpleShader( );
-	if ( !m_PlaneClippingShader->Initialize( m_d3d->GetDevice( ), CSimpleShader::EType::PlaneClipping ) )
+	m_PlaneClippingShader = new CSimpleShader();
+	if (!m_PlaneClippingShader->Initialize(m_d3d->GetDevice(), CSimpleShader::EType::PlaneClipping))
 		return false;
-	m_FaddingShader = new CSimpleShader( );
-	if ( !m_FaddingShader->Initialize( m_d3d->GetDevice( ), CSimpleShader::EType::NoPlaneClipping, true ) )
+	m_FaddingShader = new CSimpleShader();
+	if (!m_FaddingShader->Initialize(m_d3d->GetDevice(), CSimpleShader::EType::NoPlaneClipping, true))
 		return false;
-	m_TextureShader = new CTextureShader( );
-	if ( !m_TextureShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_TextureShader = new CTextureShader();
+	if (!m_TextureShader->Initialize(m_d3d->GetDevice()))
 		return false;
 	m_LinearFogShader = new CFogShader();
 	if (!m_LinearFogShader->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::LinearFog))
@@ -44,97 +44,113 @@ bool CGraphics::Initialize( HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UI
 	m_ExponentialFogShader2 = new CFogShader();
 	if (!m_ExponentialFogShader2->Initialize(m_d3d->GetDevice(), CFogShader::EFogType::ExponentialFog2))
 		return false;
-	m_ReflectionShader = new CReflectionShader( );
-	if ( !m_ReflectionShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_ReflectionShader = new CReflectionShader();
+	if (!m_ReflectionShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_GlassShader = new CGlassShader( );
-	if ( !m_GlassShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_GlassShader = new CGlassShader();
+	if (!m_GlassShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_WaterShader = new CWaterShader( );
-	if ( !m_WaterShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_WaterShader = new CWaterShader();
+	if (!m_WaterShader->Initialize(m_d3d->GetDevice()))
 		return false;
 	m_2DShader = new C2DShader();
-	if (!m_2DShader->Initialize( m_d3d->GetDevice() ))
+	if (!m_2DShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_DepthShader = new CDepthShader( );
-	if ( !m_DepthShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_DepthShader = new CDepthShader();
+	if (!m_DepthShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_ColorShadowShader = new CShadowShader( );
-	if ( !m_ColorShadowShader->Initialize( m_d3d->GetDevice( ), CShadowShader::EType::Color ) )
+	m_ColorShadowShader = new CShadowShader();
+	if (!m_ColorShadowShader->Initialize(m_d3d->GetDevice(), CShadowShader::EType::Color))
 		return false;
-	m_BWShadowShader = new CShadowShader( );
-	if ( !m_BWShadowShader->Initialize( m_d3d->GetDevice( ), CShadowShader::EType::BlackWhite ) )
+	m_BWShadowShader = new CShadowShader();
+	if (!m_BWShadowShader->Initialize(m_d3d->GetDevice(), CShadowShader::EType::BlackWhite))
 		return false;
-	m_MultipleShadowShader = new CMultipleShadowShader( );
-	if ( !m_MultipleShadowShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_MultipleShadowShader = new CMultipleShadowShader();
+	if (!m_MultipleShadowShader->Initialize(m_d3d->GetDevice()))
 		return false;
 	m_SoftShadowShader = new CSoftShadowShader();
 	if (!m_SoftShadowShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_HorizontalBlur = new CHorizontalBlurShader( );
-	if ( !m_HorizontalBlur->Initialize( m_d3d->GetDevice( ) ) )
+	m_HorizontalBlur = new CHorizontalBlurShader();
+	if (!m_HorizontalBlur->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_VerticalBlur = new CVerticalBlurShader( );
-	if ( !m_VerticalBlur->Initialize( m_d3d->GetDevice( ) ) )
+	m_VerticalBlur = new CVerticalBlurShader();
+	if (!m_VerticalBlur->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_InstanceShader = new CInstanceShader( );
-	if ( !m_InstanceShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_InstanceShader = new CInstanceShader();
+	if (!m_InstanceShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_ProjectionShader = new CProjectionShader( );
-	if ( !m_ProjectionShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_ProjectionShader = new CProjectionShader();
+	if (!m_ProjectionShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_ProjectiveLightShader = new CProjectiveLightShader( );
-	if ( !m_ProjectiveLightShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_ProjectiveLightShader = new CProjectiveLightShader();
+	if (!m_ProjectiveLightShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_MaskShader = new CMaskShader( );
-	if ( !m_MaskShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_MaskShader = new CMaskShader();
+	if (!m_MaskShader->Initialize(m_d3d->GetDevice()))
 		return false;
-	m_CombineTextureShader = new CCombineTextureShader( );
-	if ( !m_CombineTextureShader->Initialize( m_d3d->GetDevice( ) ) )
+	m_CombineTextureShader = new CCombineTextureShader();
+	if (!m_CombineTextureShader->Initialize(m_d3d->GetDevice()))
+		return false;
+	m_BillboardShader = new CBillboardShader();
+	if (!m_BillboardShader->Initialize(m_d3d->GetDevice()))
 		return false;
 	m_Camera = new CCamera();
-	if (!m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, -10.0f, 1.0f ),
-		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f ))
+	if (!m_Camera->Initialize(DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f),
+		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f))
 		return false;
-	if (!FontClass::Initialize( m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt" ))
+	if (!FontClass::Initialize(m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt"))
 		return false;
 	m_Cheat = new CSentence();
-	if ( !m_Cheat->Initialize( m_d3d->GetDevice( ), "Here is a veeeery long string. Here will be wrote possible cheats",
-		WindowWidth, WindowHeight, 1.0f, ( float ) WindowHeight - 17.0f ) )
+	if (!m_Cheat->Initialize(m_d3d->GetDevice(), "Here is a veeeery long string. Here will be wrote possible cheats",
+		WindowWidth, WindowHeight, 1.0f, (float)WindowHeight - 17.0f))
 		return false;
 	m_FPSMessage = new CSentence();
-	if ( !m_FPSMessage->Initialize( m_d3d->GetDevice( ), "Frames per second: 000", WindowWidth, WindowHeight, 1.0f, 69.0f ) )
+	if (!m_FPSMessage->Initialize(m_d3d->GetDevice(), "Frames per second: 000", WindowWidth, WindowHeight, 1.0f, 69.0f))
 		return false;
 	m_FrameTimeMessage = new CSentence();
-	if ( !m_FrameTimeMessage->Initialize( m_d3d->GetDevice( ), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f ) )
+	if (!m_FrameTimeMessage->Initialize(m_d3d->GetDevice(), "Frame time: 0.00", WindowWidth, WindowHeight, 1.0f, 20.0f))
 		return false;
-	m_Button = new BitmapClass( );
-	if ( !m_Button->Initialize( m_d3d->GetDevice( ), L"", WindowWidth, WindowHeight, ButtonWidth, ButtonHeight ) )
+	m_Button = new BitmapClass();
+	if (!m_Button->Initialize(m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, ButtonWidth, ButtonHeight))
 		return false;
-	m_GlowTest = new CGlow( );
-	if ( !m_GlowTest->Initialize( m_d3d->GetDevice( ), L"data\\test.dds", L"data\\glowmap.dds",
+	m_GlowTest = new CGlow();
+	if (!m_GlowTest->Initialize(m_d3d->GetDevice(), L"data\\test.dds", L"data\\glowmap.dds",
 		m_HorizontalBlur, m_VerticalBlur, m_2DShader, m_MaskShader, m_CombineTextureShader,
-		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar ) )
+		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar))
 		return false;
-	m_Sphere = new CModel( );
-	if ( !m_Sphere->Initialize( m_d3d->GetDevice( ), L"data\\sphere.txt", L"data\\marble01.dds" ) )
+
+	m_Ground = new CModel();
+	if (!m_Ground->Initialize(m_d3d->GetDevice(), L"data\\Ground.txt", L"data\\stone01.dds"))
 		return false;
-	m_Sphere->Translate( 0.0f, 2.0f, -10.0f );
-	m_Floor = new CModel( );
-	if ( !m_Floor->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\checkboard.dds" ) )
+	m_Ground->Scale(10, 10, 10);
+
+	std::vector<LPWSTR> Paths;
+	Paths.push_back(L"data\\tree0.dds");
+	Paths.push_back(L"data\\tree1.dds");
+	Paths.push_back(L"data\\tree2.dds");
+	Paths.push_back(L"data\\tree3.dds");
+
+	m_Trees = new CTexture();
+	if (!m_Trees->Initialize(m_d3d->GetDevice(), m_d3d->GetImmediateContext(), Paths))
 		return false;
-	m_Floor->Translate( 0.f, 0.f, -10.f );
-	m_Wall = new CModel( );
-	if ( !m_Wall->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\brick01.dds" ) )
-		return false;
-	m_Wall->RotateX( -FLOAT_PI / 2 );
-	m_Wall->Translate( 0.0f, 0.0f, 5.0f );
-	m_Mirror = new CModel( );
-	if ( !m_Mirror->Initialize( m_d3d->GetDevice( ), L"data\\floor.txt", L"data\\blue01.dds" ) )
-		return false;
-	m_Mirror->RotateX( -FLOAT_PI / 2 );
-	m_Mirror->Translate( 0.0f, 5.0f, 0.0f );
-	m_Mirror->Scale( 0.5f, 0.5f, 0.5f );
+
+	DirectX::XMFLOAT3 Trees[5] =
+	{
+		DirectX::XMFLOAT3(0.0f, 2.0f, 0.0f),
+		DirectX::XMFLOAT3(3.0f, 2.0f, 0.3f),
+		DirectX::XMFLOAT3(-2.f, 2.0f, 0.6f),
+		DirectX::XMFLOAT3(-6.f, 2.0f, 3.0f),
+		DirectX::XMFLOAT3(5.0f, 2.0f, 5.0f),
+	};
+	D3D11_BUFFER_DESC buffDesc = { 0 };
+	D3D11_SUBRESOURCE_DATA buffData = { 0 };
+	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+	buffDesc.ByteWidth = sizeof(DirectX::XMFLOAT3) * sizeof(Trees) / sizeof(Trees[0]);
+	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_IMMUTABLE;
+	buffData.pSysMem = Trees;
+	HRESULT hr = m_d3d->GetDevice()->CreateBuffer(&buffDesc, &buffData, &m_TreesBuffer);
+	IFFAILED(hr, L"Fraier\n");
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
@@ -191,50 +207,19 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	//m_Wall->Render( m_d3d->GetImmediateContext( ) );
-	//m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Wall->GetIndexCount( ), m_Wall->GetTexture( ),
-		//m_Wall->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
+	m_Ground->Render(m_d3d->GetImmediateContext());
+	m_TextureShader->Render(m_d3d->GetImmediateContext(), m_Ground->GetIndexCount(), m_Ground->GetTexture(),
+		m_Ground->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), Light, PointLight);
 
-	m_Floor->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Floor->GetIndexCount( ), m_Floor->GetTexture( ),
-		m_Floor->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-
-	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
-		m_Sphere->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-
-	m_d3d->DisableRenderTargetWrite( );
-	m_d3d->WriteToStencil( );
-	m_Mirror->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Mirror->GetIndexCount( ), m_Mirror->GetTexture( ),
-		m_Mirror->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-	m_d3d->DisableSkyRendering( );
-	m_d3d->DisableAlphaBlending( );
-
-
-	m_d3d->DisableCulling( );
-	m_d3d->EnableMirrorRendering( );
-	DirectX::XMMATRIX R = DirectX::XMMatrixReflect( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ) );
-	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
-		m_Sphere->GetWorld( ) * R, m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-	m_d3d->DisableSkyRendering( );
-	m_d3d->EnableBackFaceCulling( );
-
-	m_d3d->EnableTransparency( );
-	m_Mirror->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Mirror->GetIndexCount( ), m_Mirror->GetTexture( ),
-		 m_Mirror->GetWorld( ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-	m_d3d->DisableAlphaBlending( );
-
-	m_d3d->EnableShadowRendering( );
-	DirectX::XMVECTOR Plane = DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 0.0f );
-	DirectX::XMVECTOR LightPos = DirectX::XMVectorSet( 0.0f, 9.0f, 0.0f, 1.0f );
-	DirectX::XMMATRIX Shadow = DirectX::XMMatrixShadow( Plane, LightPos );
-	m_Sphere->Render( m_d3d->GetImmediateContext( ) );
-	m_TextureShader->Render( m_d3d->GetImmediateContext( ), m_Sphere->GetIndexCount( ), m_Sphere->GetTexture( ),
-		m_Sphere->GetWorld( ) * Shadow * DirectX::XMMatrixTranslation( 0.0f, 0.001f, 0.0f ), m_Camera->GetView( ), m_Camera->GetProjection( ), Light, PointLight );
-	m_d3d->DisableSkyRendering( );
+	static UINT Stride = sizeof(DirectX::XMFLOAT3);
+	static UINT Offset = 0;
+	m_d3d->GetImmediateContext()->IASetVertexBuffers(0, 1, &m_TreesBuffer, &Stride, &Offset);
+	m_d3d->GetImmediateContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	m_d3d->DisableCulling();
+	m_d3d->EnableAlphaToCoverage();
+	m_BillboardShader->Render(m_d3d->GetImmediateContext(), 5, m_Trees->GetTexture(),
+		DirectX::XMMatrixIdentity(), m_Camera->GetView(), m_Camera->GetProjection(), m_Camera->GetCameraPosition());
+	
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
@@ -269,18 +254,14 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
-	
-	m_Sphere->Shutdown( );
-	delete m_Sphere;
-	
-	m_Wall->Shutdown( );
-	delete m_Wall;
 
-	m_Floor->Shutdown( );
-	delete m_Floor;
+	SafeRelease(m_TreesBuffer);
 
-	m_Mirror->Shutdown( );
-	delete m_Mirror;
+	m_Ground->Shutdown();
+	delete m_Ground;
+
+	m_Trees->Shutdown();
+	delete m_Trees;
 
 	m_Cheat->Shutdown();
 	delete m_Cheat;
@@ -293,6 +274,9 @@ void CGraphics::Shutdown()
 
 	m_FPSMessage->Shutdown();
 	delete m_FPSMessage;
+
+	m_BillboardShader->Shutdown();
+	delete m_BillboardShader;
 
 	m_2DShader->Shutdown();
 	delete m_2DShader;

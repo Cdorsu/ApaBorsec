@@ -30,6 +30,7 @@
 #include "MaskShader.h"
 #include "Glow.h"
 #include "CombineTextureShader.h"
+#include "BillboardShader.h"
 
 
 class CGraphics sealed
@@ -78,11 +79,13 @@ private:
 	CSentence *m_Cheat;
 	BitmapClass *m_Button;
 	CGlow *m_GlowTest;
+	CBillboardShader *m_BillboardShader;
 
-	CModel *m_Sphere;
-	CModel *m_Floor;
-	CModel *m_Wall;
-	CModel *m_Mirror;
+	CTexture *m_Trees;
+	CModel *m_Ground;
+
+	ID3D11Buffer *m_TreesBuffer;
+	ID3D11InputLayout *m_Layout;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;

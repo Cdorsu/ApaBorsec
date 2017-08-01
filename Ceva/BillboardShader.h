@@ -19,7 +19,6 @@ private:
 	struct SConstantBuffer
 	{
 		DirectX::XMMATRIX WVP;
-		DirectX::XMMATRIX World;
 	};
 	struct SCamPos
 	{
