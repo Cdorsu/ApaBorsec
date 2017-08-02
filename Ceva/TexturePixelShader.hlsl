@@ -7,7 +7,6 @@ struct PSIn
 	float3 worldPos : POSITION;
 	float2 Tex : TEXCOORD;
 	float3 Normal : NORMAL;
-	float3 lightPos : TEXCOORD1;
 };
 
 struct DirectionalLight

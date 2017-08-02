@@ -31,6 +31,7 @@
 #include "Glow.h"
 #include "CombineTextureShader.h"
 #include "BillboardShader.h"
+#include "ExplosionShader.h"
 
 
 class CGraphics sealed
@@ -80,15 +81,15 @@ private:
 	BitmapClass *m_Button;
 	CGlow *m_GlowTest;
 	CBillboardShader *m_BillboardShader;
+	CExplosionShader *m_ExplosionShader;
 
-	CTexture *m_Trees;
 	CModel *m_Ground;
-
-	ID3D11Buffer *m_TreesBuffer;
-	ID3D11InputLayout *m_Layout;
+	CModel *m_Sphere;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
+
+	float T = 0;
 	
 public:
 	CGraphics();

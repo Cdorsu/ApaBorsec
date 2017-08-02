@@ -95,6 +95,9 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_BillboardShader = new CBillboardShader();
 	if (!m_BillboardShader->Initialize(m_d3d->GetDevice()))
 		return false;
+	m_ExplosionShader = new CExplosionShader();
+	if (!m_ExplosionShader->Initialize(m_d3d->GetDevice()))
+		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize(DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f),
 		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f))
@@ -124,33 +127,16 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	if (!m_Ground->Initialize(m_d3d->GetDevice(), L"data\\Ground.txt", L"data\\stone01.dds"))
 		return false;
 	m_Ground->Scale(10, 10, 10);
+	m_Sphere = new CModel();
+	if (!m_Sphere->Initialize(m_d3d->GetDevice(), L"data\\sphere.txt", L"data\\marble01.dds"))
+		return false;
+	m_Sphere->Translate(0.0f, 3.0f, 0.0f);
 
 	std::vector<LPWSTR> Paths;
 	Paths.push_back(L"data\\tree0.dds");
 	Paths.push_back(L"data\\tree1.dds");
 	Paths.push_back(L"data\\tree2.dds");
 	Paths.push_back(L"data\\tree3.dds");
-
-	m_Trees = new CTexture();
-	if (!m_Trees->Initialize(m_d3d->GetDevice(), m_d3d->GetImmediateContext(), Paths))
-		return false;
-
-	DirectX::XMFLOAT3 Trees[5] =
-	{
-		DirectX::XMFLOAT3(0.0f, 2.0f, 0.0f),
-		DirectX::XMFLOAT3(3.0f, 2.0f, 0.3f),
-		DirectX::XMFLOAT3(-2.f, 2.0f, 0.6f),
-		DirectX::XMFLOAT3(-6.f, 2.0f, 3.0f),
-		DirectX::XMFLOAT3(5.0f, 2.0f, 5.0f),
-	};
-	D3D11_BUFFER_DESC buffDesc = { 0 };
-	D3D11_SUBRESOURCE_DATA buffData = { 0 };
-	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
-	buffDesc.ByteWidth = sizeof(DirectX::XMFLOAT3) * sizeof(Trees) / sizeof(Trees[0]);
-	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_IMMUTABLE;
-	buffData.pSysMem = Trees;
-	HRESULT hr = m_d3d->GetDevice()->CreateBuffer(&buffDesc, &buffData, &m_TreesBuffer);
-	IFFAILED(hr, L"Fraier\n");
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
@@ -170,6 +156,7 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
+	T += fFrameTime;
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
 	static char buffer[ 500 ] = { 0 };
 	sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
@@ -210,16 +197,15 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_Ground->Render(m_d3d->GetImmediateContext());
 	m_TextureShader->Render(m_d3d->GetImmediateContext(), m_Ground->GetIndexCount(), m_Ground->GetTexture(),
 		m_Ground->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), Light, PointLight);
-
-	static UINT Stride = sizeof(DirectX::XMFLOAT3);
-	static UINT Offset = 0;
-	m_d3d->GetImmediateContext()->IASetVertexBuffers(0, 1, &m_TreesBuffer, &Stride, &Offset);
-	m_d3d->GetImmediateContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	m_d3d->DisableCulling();
-	m_d3d->EnableAlphaToCoverage();
-	m_BillboardShader->Render(m_d3d->GetImmediateContext(), 5, m_Trees->GetTexture(),
-		DirectX::XMMatrixIdentity(), m_Camera->GetView(), m_Camera->GetProjection(), m_Camera->GetCameraPosition());
 	
+	m_Sphere->Render(m_d3d->GetImmediateContext());
+	m_ExplosionShader->Render(m_d3d->GetImmediateContext(), m_Sphere->GetIndexCount(), m_Sphere->GetTexture(),
+		m_Sphere->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), T);
+
+	m_Sphere->Render(m_d3d->GetImmediateContext());
+	m_ExplosionShader->Render(m_d3d->GetImmediateContext(), m_Sphere->GetIndexCount(), m_Sphere->GetTexture(),
+		m_Sphere->GetWorld() * DirectX::XMMatrixTranslation(6.0f, 0.0f, 0.0f), m_Camera->GetView(), m_Camera->GetProjection(), 0.0f);
+
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
@@ -254,14 +240,15 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
+	
+	m_ExplosionShader->Shutdown();
+	delete m_ExplosionShader;
 
-	SafeRelease(m_TreesBuffer);
+	m_Sphere->Shutdown();
+	delete m_Sphere;
 
 	m_Ground->Shutdown();
 	delete m_Ground;
-
-	m_Trees->Shutdown();
-	delete m_Trees;
 
 	m_Cheat->Shutdown();
 	delete m_Cheat;
