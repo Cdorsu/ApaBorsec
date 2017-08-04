@@ -98,6 +98,9 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_ExplosionShader = new CExplosionShader();
 	if (!m_ExplosionShader->Initialize(m_d3d->GetDevice()))
 		return false;
+	m_ComputeShader = new CComputeShader();
+	if (!m_ComputeShader->Initialize(m_d3d->GetDevice()))
+		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize(DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f),
 		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f))
@@ -123,20 +126,12 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar))
 		return false;
 
-	m_Ground = new CModel();
-	if (!m_Ground->Initialize(m_d3d->GetDevice(), L"data\\Ground.txt", L"data\\stone01.dds"))
+	FirstTexture = new CTexture();
+	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
 		return false;
-	m_Ground->Scale(10, 10, 10);
-	m_Sphere = new CModel();
-	if (!m_Sphere->Initialize(m_d3d->GetDevice(), L"data\\sphere.txt", L"data\\marble01.dds"))
+	SecondTexture = new CTexture();
+	if (!SecondTexture->Initialize(m_d3d->GetDevice(), L"data\\blue01.dds"))
 		return false;
-	m_Sphere->Translate(0.0f, 3.0f, 0.0f);
-
-	std::vector<LPWSTR> Paths;
-	Paths.push_back(L"data\\tree0.dds");
-	Paths.push_back(L"data\\tree1.dds");
-	Paths.push_back(L"data\\tree2.dds");
-	Paths.push_back(L"data\\tree3.dds");
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
@@ -151,18 +146,53 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	PointLight->SetAttenuation( 0.4f, 0.2f, 0.0f );
 	PointLight->SetRange( 0 ); // disable point light
 
+	ID3D11Texture2D * tex2D = nullptr;
+	D3D11_TEXTURE2D_DESC texDesc;
+	ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE2D_DESC));
+	texDesc.ArraySize = 1;
+	texDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE;
+	texDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.Width = Width;
+	texDesc.Height = Height;
+	texDesc.MipLevels = 0;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.SampleDesc.Quality = 0;
+	texDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+	HRESULT hr;
+	hr = m_d3d->GetDevice()->CreateTexture2D(&texDesc, nullptr, &tex2D);
+	IFFAILED(hr, L"");
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+	srvDesc.Format = texDesc.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
+	hr = m_d3d->GetDevice()->CreateShaderResourceView(tex2D, &srvDesc, &ResultTextureSRV);
+	IFFAILED(hr, L"");
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+	ZeroMemory(&uavDesc, sizeof(D3D11_UNORDERED_ACCESS_VIEW_DESC));
+	uavDesc.Format = texDesc.Format;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION::D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+	hr = m_d3d->GetDevice()->CreateUnorderedAccessView(tex2D, &uavDesc, &ResultTextureUAV);
+	IFFAILED(hr, L"");
+
 	return true;
 }
 
 void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTime, UINT MouseX, UINT MouseY, char * cheat )
 {
-	T += fFrameTime;
 	PointLight->SetPosition( m_Camera->GetCameraPosition( ) );
 	static char buffer[ 500 ] = { 0 };
 	sprintf_s( buffer, "Frames per second: %d", dwFramesPerSecond );
 	m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
 	sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
+
+	//if (INPUT_INSTANCE->isKeyPressed(DIK_H))
+		m_ComputeShader->Calculate(m_d3d->GetImmediateContext(), FirstTexture->GetTexture(), SecondTexture->GetTexture(),
+			ResultTextureUAV, Width, Height, 1);
+
 	if (RenderMenu)
 	{
 		if ( strlen( cheat ) > 0 )
@@ -194,18 +224,17 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	m_Ground->Render(m_d3d->GetImmediateContext());
-	m_TextureShader->Render(m_d3d->GetImmediateContext(), m_Ground->GetIndexCount(), m_Ground->GetTexture(),
-		m_Ground->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), Light, PointLight);
-	
-	m_Sphere->Render(m_d3d->GetImmediateContext());
-	m_ExplosionShader->Render(m_d3d->GetImmediateContext(), m_Sphere->GetIndexCount(), m_Sphere->GetTexture(),
-		m_Sphere->GetWorld(), m_Camera->GetView(), m_Camera->GetProjection(), T);
+	m_DebugWindow->Render(m_d3d->GetImmediateContext(), 0, 0);
+	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), FirstTexture->GetTexture(),
+		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
 
-	m_Sphere->Render(m_d3d->GetImmediateContext());
-	m_ExplosionShader->Render(m_d3d->GetImmediateContext(), m_Sphere->GetIndexCount(), m_Sphere->GetTexture(),
-		m_Sphere->GetWorld() * DirectX::XMMatrixTranslation(6.0f, 0.0f, 0.0f), m_Camera->GetView(), m_Camera->GetProjection(), 0.0f);
+	m_DebugWindow->Render(m_d3d->GetImmediateContext(), m_WindowWidth / 2, 0);
+	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), SecondTexture->GetTexture(),
+		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
 
+	m_DebugWindow->Render(m_d3d->GetImmediateContext(), 0, m_WindowHeight / 2);
+	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), ResultTextureSRV,
+		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
@@ -240,15 +269,15 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
+
+	SafeRelease(ResultTextureUAV);
+	SafeRelease(ResultTextureSRV);
+
+	FirstTexture->Shutdown();
+	SecondTexture->Shutdown();
 	
 	m_ExplosionShader->Shutdown();
 	delete m_ExplosionShader;
-
-	m_Sphere->Shutdown();
-	delete m_Sphere;
-
-	m_Ground->Shutdown();
-	delete m_Ground;
 
 	m_Cheat->Shutdown();
 	delete m_Cheat;
@@ -318,6 +347,9 @@ void CGraphics::Shutdown()
 
 	m_ExponentialFogShader2->Shutdown();
 	delete m_ExponentialFogShader2;
+
+	m_ComputeShader->Shutdown();
+	delete m_ComputeShader;
 
 	m_MaskShader->Shutdown( );
 	delete m_MaskShader;

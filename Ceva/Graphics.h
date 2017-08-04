@@ -32,10 +32,13 @@
 #include "CombineTextureShader.h"
 #include "BillboardShader.h"
 #include "ExplosionShader.h"
+#include "ComputeShader.h"
 
 
 class CGraphics sealed
 {
+	static constexpr UINT Width = 2560;
+	static constexpr UINT Height = 1600;
 	static constexpr float camNear = 0.1f;
 	static constexpr float camFar = 1000.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
@@ -63,6 +66,7 @@ private:
 	CDepthShader *m_DepthShader;
 	CShadowShader *m_ColorShadowShader;
 	CShadowShader *m_BWShadowShader;
+	CComputeShader *m_ComputeShader;
 	CMultipleShadowShader *m_MultipleShadowShader;
 	CSoftShadowShader *m_SoftShadowShader;
 	CHorizontalBlurShader *m_HorizontalBlur;
@@ -83,13 +87,13 @@ private:
 	CBillboardShader *m_BillboardShader;
 	CExplosionShader *m_ExplosionShader;
 
-	CModel *m_Ground;
-	CModel *m_Sphere;
+	CTexture * FirstTexture;
+	CTexture * SecondTexture;
+	ID3D11UnorderedAccessView * ResultTextureUAV;
+	ID3D11ShaderResourceView * ResultTextureSRV;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
-
-	float T = 0;
 	
 public:
 	CGraphics();
