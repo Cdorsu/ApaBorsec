@@ -189,7 +189,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
 
-	//if (INPUT_INSTANCE->isKeyPressed(DIK_H))
+	if (INPUT_INSTANCE->isKeyPressed(DIK_H))
 		m_ComputeShader->Calculate(m_d3d->GetImmediateContext(), FirstTexture->GetTexture(), SecondTexture->GetTexture(),
 			ResultTextureUAV, Width, Height, 1);
 
