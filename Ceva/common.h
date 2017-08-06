@@ -35,6 +35,8 @@ template <class type> inline void SafeRelease( type Object )
 #define FLOAT_PI 3.14159265359f
 #define DEG2RAD(Angle) Angle * (FLOAT_PI / 180.0f)
 #define RAD2DEG(Rad) Rad * (180.0f / FLOAT_PI)
+#define ZeroMemoryAndDeclare(Type, Name)	Type Name;\
+											ZeroMemory(&Name,sizeof(Type));
 
 namespace common
 {

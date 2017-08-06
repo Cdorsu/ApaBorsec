@@ -18,7 +18,8 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	if (!m_Cursor->Initialize(m_d3d->GetDevice(), L"data\\Cursor.dds", WindowWidth, WindowHeight, 32, 32))
 		return false;
 	m_DebugWindow = new BitmapClass();
-	if (!m_DebugWindow->Initialize(m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, 0.5f * WindowWidth, 0.5f * WindowHeight))
+	if (!m_DebugWindow->Initialize(m_d3d->GetDevice(), L"",
+		WindowWidth, WindowHeight, (int)(0.5 * WindowWidth), (int)(0.5 * WindowHeight)))
 		return false;
 	m_DebugWindowTexture = new CRenderTexture();
 	if (!m_DebugWindowTexture->Initialize(m_d3d->GetDevice(), WindowWidth, WindowHeight, FOV, camNear, camFar))
@@ -101,6 +102,9 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_ComputeShader = new CComputeShader();
 	if (!m_ComputeShader->Initialize(m_d3d->GetDevice()))
 		return false;
+	m_VertexAddtiionShader = new CVertexAdditionShader();
+	if (!m_VertexAddtiionShader->Initialize(m_d3d->GetDevice()))
+		return false;
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize(DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f),
 		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f))
@@ -177,6 +181,21 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	hr = m_d3d->GetDevice()->CreateUnorderedAccessView(tex2D, &uavDesc, &ResultTextureUAV);
 	IFFAILED(hr, L"");
 
+	std::vector<CVertexAdditionShader::Data> Data1, Data2;
+	for (float i = 0; i < Elements; ++i)
+	{
+		Data1.emplace_back(DirectX::XMFLOAT4(i, -i, i, 1), DirectX::XMFLOAT2(1, 0));
+		Data2.emplace_back(DirectX::XMFLOAT4(-i, i, i, 1), DirectX::XMFLOAT2(0, 1));
+	}
+	
+	ID3D11Buffer * Input[2] = { Input1,Input2 };
+	ID3D11ShaderResourceView * InputViews[2] = { Input1View,Input2View };
+	bool result;
+	result = m_VertexAddtiionShader->CreateBuffers(m_d3d->GetDevice(), &Data1[0], &Data2[0], Data1.size(),
+		Input, Output, DebugOutput, InputViews, OutputUAV);
+	if (!result)
+		return false;
+
 	return true;
 }
 
@@ -192,6 +211,9 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	if (INPUT_INSTANCE->isKeyPressed(DIK_H))
 		m_ComputeShader->Calculate(m_d3d->GetImmediateContext(), FirstTexture->GetTexture(), SecondTexture->GetTexture(),
 			ResultTextureUAV, Width, Height, 1);
+	//if (INPUT_INSTANCE->isKeyPressed(DIK_B))
+		m_VertexAddtiionShader->Calculate(m_d3d->GetImmediateContext(), Input1View, Input2View,
+			OutputUAV, Output, DebugOutput, Elements, Elements, 1, 1);
 
 	if (RenderMenu)
 	{
@@ -270,11 +292,20 @@ void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
 
+	SafeRelease(Input1);
+	SafeRelease(Input2);
+	SafeRelease(Output);
+	SafeRelease(DebugOutput);
+	SafeRelease(OutputUAV);
+
 	SafeRelease(ResultTextureUAV);
 	SafeRelease(ResultTextureSRV);
 
 	FirstTexture->Shutdown();
 	SecondTexture->Shutdown();
+	
+	m_VertexAddtiionShader->Shutdown();
+	delete m_VertexAddtiionShader;
 	
 	m_ExplosionShader->Shutdown();
 	delete m_ExplosionShader;

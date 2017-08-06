@@ -33,14 +33,16 @@
 #include "BillboardShader.h"
 #include "ExplosionShader.h"
 #include "ComputeShader.h"
+#include "VertexAdditionShader.h"
 
 
 class CGraphics sealed
 {
-	static constexpr UINT Width = 2560;
-	static constexpr UINT Height = 1600;
+	static constexpr UINT Width = 1024;
+	static constexpr UINT Height = 1024;
+	static constexpr UINT Elements = 64;
 	static constexpr float camNear = 0.1f;
-	static constexpr float camFar = 1000.0f;
+	static constexpr float camFar = 100.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
 	static constexpr float LightFOV = 0.3f * FLOAT_PI;
 	static constexpr float SHADOW_WIDTH = 1024;
@@ -86,11 +88,19 @@ private:
 	CGlow *m_GlowTest;
 	CBillboardShader *m_BillboardShader;
 	CExplosionShader *m_ExplosionShader;
+	CVertexAdditionShader *m_VertexAddtiionShader;
 
 	CTexture * FirstTexture;
 	CTexture * SecondTexture;
 	ID3D11UnorderedAccessView * ResultTextureUAV;
 	ID3D11ShaderResourceView * ResultTextureSRV;
+	ID3D11Buffer * Input1;
+	ID3D11Buffer * Input2;
+	ID3D11Buffer * Output;
+	ID3D11Buffer * DebugOutput;
+	ID3D11ShaderResourceView * Input1View;
+	ID3D11ShaderResourceView * Input2View;
+	ID3D11UnorderedAccessView * OutputUAV;
 
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
