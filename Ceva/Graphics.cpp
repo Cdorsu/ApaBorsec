@@ -99,12 +99,14 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_ExplosionShader = new CExplosionShader();
 	if (!m_ExplosionShader->Initialize(m_d3d->GetDevice()))
 		return false;
+#if defined USE_5_0_SHADERS
 	m_ComputeShader = new CComputeShader();
 	if (!m_ComputeShader->Initialize(m_d3d->GetDevice()))
 		return false;
 	m_VertexAddtiionShader = new CVertexAdditionShader();
 	if (!m_VertexAddtiionShader->Initialize(m_d3d->GetDevice()))
 		return false;
+#endif
 	m_Camera = new CCamera();
 	if (!m_Camera->Initialize(DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f),
 		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f))
@@ -129,6 +131,12 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 		m_HorizontalBlur, m_VerticalBlur, m_2DShader, m_MaskShader, m_CombineTextureShader,
 		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar))
 		return false;
+	std::vector<CalculateLength::SData> Data;
+	int size;
+	for (size = 0; size < 69; ++size)
+		Data.emplace_back(69.f);
+	m_CalculateLength = new CalculateLength(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
+	m_CalculateLength->SetData(&Data[0], size);
 
 	FirstTexture = new CTexture();
 	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
@@ -150,6 +158,7 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	PointLight->SetAttenuation( 0.4f, 0.2f, 0.0f );
 	PointLight->SetRange( 0 ); // disable point light
 
+#if defined USE_5_0_SHADERS
 	ID3D11Texture2D * tex2D = nullptr;
 	D3D11_TEXTURE2D_DESC texDesc;
 	ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE2D_DESC));
@@ -181,6 +190,9 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	hr = m_d3d->GetDevice()->CreateUnorderedAccessView(tex2D, &uavDesc, &ResultTextureUAV);
 	IFFAILED(hr, L"");
 
+#endif
+
+#if defined USE_5_0_SHADERS
 	std::vector<CVertexAdditionShader::Data> Data1, Data2;
 	for (float i = 0; i < Elements; ++i)
 	{
@@ -195,6 +207,8 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 		Input, Output, DebugOutput, InputViews, OutputUAV);
 	if (!result)
 		return false;
+#endif
+	INPUT_INSTANCE->AddSpecialKey(DIK_P);
 
 	return true;
 }
@@ -208,12 +222,18 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
 
+#if defined USE_5_0_SHADERS
 	if (INPUT_INSTANCE->isKeyPressed(DIK_H))
 		m_ComputeShader->Calculate(m_d3d->GetImmediateContext(), FirstTexture->GetTexture(), SecondTexture->GetTexture(),
 			ResultTextureUAV, Width, Height, 1);
-	//if (INPUT_INSTANCE->isKeyPressed(DIK_B))
+	if (INPUT_INSTANCE->isKeyPressed(DIK_B))
 		m_VertexAddtiionShader->Calculate(m_d3d->GetImmediateContext(), Input1View, Input2View,
 			OutputUAV, Output, DebugOutput, Elements, Elements, 1, 1);
+#endif
+	if (INPUT_INSTANCE->isKeyPressed(DIK_L))
+		m_CalculateLength->Calculate();
+	if (INPUT_INSTANCE->isSpecialKeyPressed(DIK_P))
+		m_CalculateLength->GetResults();
 
 	if (RenderMenu)
 	{
@@ -252,10 +272,6 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 
 	m_DebugWindow->Render(m_d3d->GetImmediateContext(), m_WindowWidth / 2, 0);
 	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), SecondTexture->GetTexture(),
-		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
-
-	m_DebugWindow->Render(m_d3d->GetImmediateContext(), 0, m_WindowHeight / 2);
-	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), ResultTextureSRV,
 		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
 
 #pragma region Draw UI
@@ -303,6 +319,8 @@ void CGraphics::Shutdown()
 
 	FirstTexture->Shutdown();
 	SecondTexture->Shutdown();
+
+	delete m_CalculateLength;
 	
 	m_VertexAddtiionShader->Shutdown();
 	delete m_VertexAddtiionShader;

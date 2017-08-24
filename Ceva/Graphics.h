@@ -34,6 +34,7 @@
 #include "ExplosionShader.h"
 #include "ComputeShader.h"
 #include "VertexAdditionShader.h"
+#include "CalculateLength.h"
 
 
 class CGraphics sealed
@@ -89,6 +90,7 @@ private:
 	CBillboardShader *m_BillboardShader;
 	CExplosionShader *m_ExplosionShader;
 	CVertexAdditionShader *m_VertexAddtiionShader;
+	CalculateLength *m_CalculateLength;
 
 	CTexture * FirstTexture;
 	CTexture * SecondTexture;

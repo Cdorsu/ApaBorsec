@@ -125,6 +125,7 @@
     <ClCompile Include="BillboardShader.cpp" />
     <ClCompile Include="BitmapClass.cpp" />
     <ClCompile Include="C2DShader.cpp" />
+    <ClCompile Include="CalculateLength.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CombineTextureShader.cpp" />
     <ClCompile Include="commonmath.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="BillboardShader.h" />
     <ClInclude Include="BitmapClass.h" />
     <ClInclude Include="C2DShader.h" />
+    <ClInclude Include="CalculateLength.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CombineTextureShader.h" />
     <ClInclude Include="commonmath.h" />
@@ -276,6 +278,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="CalculatorComputeShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ComputeLengthComputeShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
