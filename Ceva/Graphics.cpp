@@ -106,8 +106,8 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	if (!m_VertexAddtiionShader->Initialize(m_d3d->GetDevice()))
 		return false;
 	m_Camera = new CCamera();
-	if (!m_Camera->Initialize(DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f),
-		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 15.0f))
+	if (!m_Camera->Initialize(DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 10.0f),
+		FOV, (FLOAT)WindowWidth / WindowHeight, camNear, camFar, 1.0f))
 		return false;
 	if (!FontClass::Initialize(m_d3d->GetDevice(), L"data\\font.dds", L"data\\fontdata.txt"))
 		return false;
@@ -138,6 +138,7 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 		return false;
 	
 	m_Blurer = new BlurImage(m_d3d->GetDevice(), m_d3d->GetImmediateContext(), FirstTexture->GetTexture(), FirstTextureUAV);
+	m_Waves = new TesselatedWaves(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
@@ -250,18 +251,9 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->EnableBackBuffer( );
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
+	m_d3d->EnableWireframe();
 
-	m_DebugWindow->Render(m_d3d->GetImmediateContext(), 0, 0);
-	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), FirstTexture->GetTexture(),
-		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
-
-	m_DebugWindow->Render(m_d3d->GetImmediateContext(), m_WindowWidth / 2, 0);
-	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), SecondTexture->GetTexture(),
-		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
-
-	m_DebugWindow->Render(m_d3d->GetImmediateContext(), 0, m_WindowHeight / 2);
-	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), m_Blurer->GetTexture(),
-		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
+	m_Waves->Render(m_Camera->GetCameraPosition(), m_Camera->GetView(), m_Camera->GetProjection());
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );

@@ -135,6 +135,12 @@
     <ClCompile Include="BlurImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CalculateLength.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TesselatedWaves.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DClass.h">
@@ -261,6 +267,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BlurImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CalculateLength.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TesselatedWaves.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -415,6 +427,18 @@
     <FxCompile Include="VerticalBlurComputeShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
+    <FxCompile Include="ComputeLengthComputeShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="WavesPixelShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="WavesHullShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="WavesDomainShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Ceva.rc">
@@ -425,5 +449,10 @@
     <Image Include="BORSEC_logo-CMYK.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WavesVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

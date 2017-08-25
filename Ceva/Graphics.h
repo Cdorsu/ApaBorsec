@@ -35,6 +35,7 @@
 #include "ComputeShader.h"
 #include "VertexAdditionShader.h"
 #include "BlurImage.h"
+#include "TesselatedWaves.h"
 
 
 class CGraphics sealed
@@ -91,6 +92,7 @@ private:
 	CExplosionShader *m_ExplosionShader;
 	CVertexAdditionShader *m_VertexAddtiionShader;
 	BlurImage *m_Blurer;
+	TesselatedWaves *m_Waves;
 
 	CTexture * FirstTexture;
 	ID3D11UnorderedAccessView * FirstTextureUAV;
