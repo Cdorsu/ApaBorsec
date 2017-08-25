@@ -11,7 +11,11 @@ bool CTexture::Initialize( ID3D11Device * device, LPWSTR filepath )
 {
 	HRESULT hr;
 
-	hr = D3DX11CreateShaderResourceViewFromFile( device, filepath, NULL, NULL, &Texture, NULL );
+	D3DX11_IMAGE_LOAD_INFO loadInfo;
+	loadInfo.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE |
+		D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS;
+
+	hr = D3DX11CreateShaderResourceViewFromFile( device, filepath, &loadInfo, NULL, &Texture, NULL );
 	if (FAILED( hr ))
 	{
 		MessageBox( NULL, L"Couldn't get texture from file",

@@ -131,11 +131,13 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 		return false;
 
 	FirstTexture = new CTexture();
-	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
+	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\GermanShepherd.jpg"))
 		return false;
 	SecondTexture = new CTexture();
 	if (!SecondTexture->Initialize(m_d3d->GetDevice(), L"data\\blue01.dds"))
 		return false;
+	
+	m_Blurer = new BlurImage(m_d3d->GetDevice(), m_d3d->GetImmediateContext(), FirstTexture->GetTexture(), FirstTextureUAV);
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
@@ -196,6 +198,8 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	if (!result)
 		return false;
 
+	INPUT_INSTANCE->AddSpecialKey(DIK_B);
+
 	return true;
 }
 
@@ -209,12 +213,13 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
 
 	if (INPUT_INSTANCE->isKeyPressed(DIK_H))
-		m_ComputeShader->Calculate(m_d3d->GetImmediateContext(), FirstTexture->GetTexture(), SecondTexture->GetTexture(),
-			ResultTextureUAV, Width, Height, 1);
-	//if (INPUT_INSTANCE->isKeyPressed(DIK_B))
 		m_VertexAddtiionShader->Calculate(m_d3d->GetImmediateContext(), Input1View, Input2View,
 			OutputUAV, Output, DebugOutput, Elements, Elements, 1, 1);
-
+	if (INPUT_INSTANCE->isSpecialKeyPressed(DIK_B))
+		m_Blurer->PerformBlur();
+	if (INPUT_INSTANCE->isSpecialKeyPressed(DIK_F))
+		m_Blurer->ScreenShot();
+		
 	if (RenderMenu)
 	{
 		if ( strlen( cheat ) > 0 )
@@ -255,7 +260,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
 
 	m_DebugWindow->Render(m_d3d->GetImmediateContext(), 0, m_WindowHeight / 2);
-	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), ResultTextureSRV,
+	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), m_Blurer->GetTexture(),
 		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
 
 #pragma region Draw UI
@@ -292,6 +297,7 @@ void CGraphics::Shutdown()
 {
 	FontClass::Shutdown();
 
+	SafeRelease(FirstTextureUAV);
 	SafeRelease(Input1);
 	SafeRelease(Input2);
 	SafeRelease(Output);

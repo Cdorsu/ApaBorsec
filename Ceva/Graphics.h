@@ -34,12 +34,13 @@
 #include "ExplosionShader.h"
 #include "ComputeShader.h"
 #include "VertexAdditionShader.h"
+#include "BlurImage.h"
 
 
 class CGraphics sealed
 {
-	static constexpr UINT Width = 1024;
-	static constexpr UINT Height = 1024;
+	static constexpr UINT Width = 1680;
+	static constexpr UINT Height = 1050;
 	static constexpr UINT Elements = 64;
 	static constexpr float camNear = 0.1f;
 	static constexpr float camFar = 100.0f;
@@ -89,8 +90,10 @@ private:
 	CBillboardShader *m_BillboardShader;
 	CExplosionShader *m_ExplosionShader;
 	CVertexAdditionShader *m_VertexAddtiionShader;
+	BlurImage *m_Blurer;
 
 	CTexture * FirstTexture;
+	ID3D11UnorderedAccessView * FirstTextureUAV;
 	CTexture * SecondTexture;
 	ID3D11UnorderedAccessView * ResultTextureUAV;
 	ID3D11ShaderResourceView * ResultTextureSRV;
