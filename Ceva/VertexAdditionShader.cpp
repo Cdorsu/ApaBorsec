@@ -96,7 +96,7 @@ bool CVertexAdditionShader::CreateBuffers(ID3D11Device * device, Data * data1, D
 	IFFAILED(hr, L"Couldn't create a buffer");
 	ZeroMemoryAndDeclare(D3D11_SHADER_RESOURCE_VIEW_DESC, srvDesc);
 	srvDesc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_BUFFEREX;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_BUFFER;
 	srvDesc.BufferEx.FirstElement = 0;
 	srvDesc.BufferEx.Flags = 0;
 	srvDesc.BufferEx.NumElements = size;

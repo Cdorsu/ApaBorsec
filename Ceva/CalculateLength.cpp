@@ -105,7 +105,7 @@ void CalculateLength::GetResults()
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	m_immediateContext->CopyResource(m_debugBuffer, m_outputBuffer);
 	m_immediateContext->Map(m_debugBuffer, 0, D3D11_MAP::D3D11_MAP_READ, 0, &MappedResource);
-	for (int i = 0; i < m_size; ++i)
+	for (size_t i = 0; i < m_size; ++i)
 	{
 		wchar_t buffer[500] = { 0 };
 		swprintf_s(buffer, L"%.2f\n", ((float*)(MappedResource.pData))[i]);

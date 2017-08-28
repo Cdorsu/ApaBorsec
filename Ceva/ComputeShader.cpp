@@ -34,15 +34,10 @@ void CComputeShader::Calculate(ID3D11DeviceContext * context, ID3D11ShaderResour
 	context->CSSetUnorderedAccessViews(0, 1, &Result, nullptr);
 	context->CSSetShader(ComputeShader, 0, 0);
 	context->Dispatch(X, Y, Z);
-	// Unbind the input textures from the CS for good housekeeping.
-	context->CSSetShaderResources(0, 1, nullSRV);
 
-	// Unbind output from compute shader (we are going to use this output as an input in the next pass, 
-	// and a resource cannot be both an output and input at the same time.
+	context->CSSetShaderResources(0, 1, nullSRV);
 	ID3D11UnorderedAccessView* nullUAV[1] = { 0 };
 	context->CSSetUnorderedAccessViews(0, 1, nullUAV, 0);
-
-	// Disable compute shader.
 	context->CSSetShader(0, 0, 0);
 }
 
