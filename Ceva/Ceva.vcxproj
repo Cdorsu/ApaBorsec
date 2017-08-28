@@ -161,6 +161,7 @@
     <ClCompile Include="VerticalBlurShader.cpp" />
     <ClCompile Include="WaterShader.cpp" />
     <ClCompile Include="winmain.cpp" />
+    <ClCompile Include="WorldInstancing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BillboardShader.h" />
@@ -205,6 +206,7 @@
     <ClInclude Include="VertexAdditionShader.h" />
     <ClInclude Include="VerticalBlurShader.h" />
     <ClInclude Include="WaterShader.h" />
+    <ClInclude Include="WorldInstancing.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="2DPixelShader.hlsl">
@@ -518,6 +520,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="WaterVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="WorldInstancingPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="WorldInstancingVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

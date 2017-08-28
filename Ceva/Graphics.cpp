@@ -137,6 +137,7 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 		Data.emplace_back(69.f);
 	m_CalculateLength = new CalculateLength(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
 	m_CalculateLength->SetData(&Data[0], size);
+	m_WorldInstancing = new WorldInstancing( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 
 	FirstTexture = new CTexture();
 	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
@@ -266,13 +267,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	m_DebugWindow->Render(m_d3d->GetImmediateContext(), 0, 0);
-	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), FirstTexture->GetTexture(),
-		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
-
-	m_DebugWindow->Render(m_d3d->GetImmediateContext(), m_WindowWidth / 2, 0);
-	m_2DShader->Render(m_d3d->GetImmediateContext(), m_DebugWindow->GetIndexCount(), SecondTexture->GetTexture(),
-		DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(), m_d3d->GetOrthoMatrix());
+	m_WorldInstancing->Render( m_Camera->GetView( ), m_Camera->GetProjection( ) );
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
@@ -319,6 +314,8 @@ void CGraphics::Shutdown()
 
 	FirstTexture->Shutdown();
 	SecondTexture->Shutdown();
+
+	delete m_WorldInstancing;
 
 	delete m_CalculateLength;
 	

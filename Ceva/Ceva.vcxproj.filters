@@ -135,6 +135,9 @@
     <ClCompile Include="CalculateLength.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WorldInstancing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DClass.h">
@@ -261,6 +264,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CalculateLength.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldInstancing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -410,6 +416,12 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="ComputeLengthComputeShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="WorldInstancingVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="WorldInstancingPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>
