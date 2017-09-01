@@ -130,6 +130,7 @@
     <ClCompile Include="CombineTextureShader.cpp" />
     <ClCompile Include="commonmath.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="CubeMapping.cpp" />
     <ClCompile Include="DepthShader.cpp" />
     <ClCompile Include="ExplosionShader.cpp" />
     <ClCompile Include="FogShader.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="CombineTextureShader.h" />
     <ClInclude Include="commonmath.h" />
     <ClInclude Include="ComputeShader.h" />
+    <ClInclude Include="CubeMapping.h" />
     <ClInclude Include="DepthShader.h" />
     <ClInclude Include="ExplosionShader.h" />
     <ClInclude Include="FogShader.h" />
@@ -298,6 +300,19 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="CubeMappingPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="CubeMappingVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="DepthPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

@@ -36,6 +36,7 @@
 #include "VertexAdditionShader.h"
 #include "CalculateLength.h"
 #include "WorldInstancing.h"
+#include "CubeMapping.h"
 
 
 class CGraphics sealed
@@ -93,6 +94,7 @@ private:
 	CVertexAdditionShader *m_VertexAddtiionShader;
 	CalculateLength *m_CalculateLength;
 	WorldInstancing *m_WorldInstancing;
+	CubeMapping *m_CubeMapping;
 
 	CTexture * FirstTexture;
 	CTexture * SecondTexture;

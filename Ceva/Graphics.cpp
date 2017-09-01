@@ -138,6 +138,7 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_CalculateLength = new CalculateLength(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
 	m_CalculateLength->SetData(&Data[0], size);
 	m_WorldInstancing = new WorldInstancing( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	m_CubeMapping = new CubeMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 
 	FirstTexture = new CTexture();
 	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
@@ -267,7 +268,7 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	m_WorldInstancing->Render( m_Camera->GetView( ), m_Camera->GetProjection( ) );
+	m_CubeMapping->Render( m_Camera->GetCameraPosition( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
