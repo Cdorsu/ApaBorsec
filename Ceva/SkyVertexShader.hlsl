@@ -19,7 +19,7 @@ VSOut main( float4 pos : POSITION )
 	Output.Position = mul( pos, World );
     Output.Position = mul( Output.Position, View );
     Output.Position = mul( Output.Position, Projection ).xyww;
-	Output.TexCoords = pos;
+	Output.TexCoords = pos.xyz;
 
 	return Output;
 }

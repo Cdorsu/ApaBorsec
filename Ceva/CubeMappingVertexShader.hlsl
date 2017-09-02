@@ -9,6 +9,7 @@ cbuffer cbPerObject : register(b0)
 struct VSOut
 {
 	float4 Position : SV_POSITION;
+    float4 PositionW : POSITION;
 	float3 TexCoords : TEXCOORD;
     float3 Normal : NORMAL;
 };
@@ -16,8 +17,8 @@ struct VSOut
 VSOut main(float4 pos : POSITION, float2 texCoord : TEXCOORD, float3 normal : NORMAL)
 {
 	VSOut output = (VSOut) 0;
-	output.Position = mul(pos, World);
-	output.Position = mul(output.Position, View);
+	output.PositionW = mul(pos, World);
+	output.Position = mul(output.PositionW, View);
 	output.Position = mul(output.Position, Projection);
 	output.TexCoords = pos.xyz;
     output.Normal = mul(float4(normal, 1.0f), World).xyz;

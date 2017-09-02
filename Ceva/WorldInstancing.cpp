@@ -98,9 +98,9 @@ void WorldInstancing::InitializeBuffers( )
 	using namespace DirectX;
 	SInstance Instances[ ] =
 	{
-		SInstance( XMMatrixTranslation( 5,5,0 ) * XMMatrixRotationZ( 0.34 ),XMFLOAT4( 1,1,0,1 ) ),
-		SInstance( XMMatrixIdentity( ),XMFLOAT4( 1,1,1,1 ) ),
-		SInstance( XMMatrixTranslation( -5,5,0 ) * XMMatrixRotationZ( -0.34 ), XMFLOAT4(1,0,0,1)),
+		SInstance( XMMatrixTranslation( 5.f,5.f,0.f ) * XMMatrixRotationZ( 0.34f ),XMFLOAT4( 1.f,1.f,0.f,1.f ) ),
+		SInstance( XMMatrixIdentity( ),XMFLOAT4( 1.f,1.f,1.f,1.f ) ),
+		SInstance( XMMatrixTranslation( -5.f,5.f,0.f ) * XMMatrixRotationZ( -0.34f ), XMFLOAT4(1.f,0.f,0.f,1.f)),
 	};
 	m_instanceCount = ARRAYSIZE( Instances );
 	ZeroMemoryAndDeclare( D3D11_BUFFER_DESC, buffDesc );
