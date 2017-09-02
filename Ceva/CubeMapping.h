@@ -18,16 +18,23 @@ class CubeMapping
 	};
 public:
 	CModel * m_model;
+	CModel * m_sky;
 
 	ID3D11VertexShader * m_vertexShader;
 	ID3D11InputLayout * m_inputLayout;
 	ID3D11PixelShader * m_pixelShader;
+
+	ID3D11VertexShader * m_SkyVertexShader;
+	ID3D11InputLayout * m_SkyInputLayout;
+	ID3D11PixelShader * m_SkyPixelShader;
 
 	ID3D11Buffer * m_perObjectBuffer;
 	ID3D11Buffer * m_perFrameBuffer;
 	ID3D11SamplerState * m_sampler;
 
 	ID3D11ShaderResourceView * m_textureSRV;
+
+	ID3D11DepthStencilState * m_DSState;
 
 	ID3D11Device * m_device;
 	ID3D11DeviceContext * m_immediateContext;

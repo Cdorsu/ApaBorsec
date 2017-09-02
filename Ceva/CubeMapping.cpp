@@ -9,6 +9,9 @@ CubeMapping::CubeMapping( ID3D11Device * device, ID3D11DeviceContext * immediate
 	m_model = new CModel( );
 	if ( !m_model->Initialize( device, L"data\\sphere.txt", L"data\\marble01.dds" ) )
 		throw "Fraier";
+	m_sky = new CModel( );
+	if ( !m_sky->Initialize( device ) )
+		throw "Fraier";
 
 	CreateShaders( );
 	CreateBuffers( );
@@ -94,6 +97,43 @@ void CubeMapping::CreateShaders( )
 	SafeRelease( Shader );
 	SafeRelease( Errors );
 
+	hr = D3DX11CompileFromFile( L"SkyVertexShader.hlsl", nullptr, nullptr,
+		"main", "vs_4_0", 0, 0, nullptr, &Shader, &Errors, nullptr );
+	if ( FAILED( hr ) )
+		throw "Fraier";
+	hr = m_device->CreateVertexShader( Shader->GetBufferPointer( ),
+		Shader->GetBufferSize( ),
+		nullptr, &m_SkyVertexShader );
+	if ( FAILED( hr ) )
+		throw "Fraier";
+	D3D11_INPUT_ELEMENT_DESC slayout[ 1 ];
+	slayout[ 0 ].AlignedByteOffset = 0;
+	slayout[ 0 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
+	slayout[ 0 ].InputSlot = 0;
+	slayout[ 0 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
+	slayout[ 0 ].InstanceDataStepRate = 0;
+	slayout[ 0 ].SemanticIndex = 0;
+	slayout[ 0 ].SemanticName = "POSITION";
+	UINT numLayout2 = ARRAYSIZE( slayout );
+	hr = m_device->CreateInputLayout( slayout, numLayout2,
+		Shader->GetBufferPointer( ), Shader->GetBufferSize( ), &m_SkyInputLayout );
+	if ( FAILED( hr ) )
+		throw "Fraier";
+
+	SafeRelease( Shader );
+	SafeRelease( Errors );
+	hr = D3DX11CompileFromFile( L"SkyPixelShader.hlsl", nullptr, nullptr,
+		"main", "ps_4_0", 0, 0, nullptr, &Shader, &Errors, nullptr );
+	if ( FAILED( hr ) )
+		throw "Fraier";
+	hr = m_device->CreatePixelShader( Shader->GetBufferPointer( ),
+		Shader->GetBufferSize( ),
+		nullptr, &m_SkyPixelShader );
+	if ( FAILED( hr ) )
+		throw "Fraier";
+
+	SafeRelease( Shader );
+	SafeRelease( Errors );
 }
 
 void CubeMapping::CreateBuffers( )
@@ -125,6 +165,14 @@ void CubeMapping::CreateBuffers( )
 	hr = m_device->CreateSamplerState( &sampDesc, &m_sampler );
 	if ( FAILED( hr ) )
 		throw "Fraier";
+
+	ZeroMemoryAndDeclare( D3D11_DEPTH_STENCIL_DESC, dsDesc );
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+	dsDesc.StencilEnable = FALSE;
+	hr = m_device->CreateDepthStencilState( &dsDesc, &m_DSState );
+	if ( FAILED( hr ) )
+		throw "Fraier";
 }
 
 void CubeMapping::Render( DirectX::XMFLOAT3 EyePos, DirectX::FXMMATRIX& View, DirectX::FXMMATRIX& Projection )
@@ -152,6 +200,23 @@ void CubeMapping::Render( DirectX::XMFLOAT3 EyePos, DirectX::FXMMATRIX& View, Di
 	m_immediateContext->IASetInputLayout( m_inputLayout );
 
 	m_immediateContext->DrawIndexed( m_model->GetIndexCount( ), 0, 0 );
+
+	m_immediateContext->Map( m_perObjectBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &Mapped );
+	( ( SCBPerObject* ) Mapped.pData )->World = DirectX::XMMatrixTranspose( DirectX::XMMatrixTranslation( EyePos.x, EyePos.y, EyePos.z ) );
+	( ( SCBPerObject* ) Mapped.pData )->View = DirectX::XMMatrixTranspose( View );
+	( ( SCBPerObject* ) Mapped.pData )->Projection = DirectX::XMMatrixTranspose( Projection );
+	m_immediateContext->Unmap( m_perObjectBuffer, 0 );
+	m_immediateContext->VSSetConstantBuffers( 0, 1, &m_perObjectBuffer );
+
+
+	m_immediateContext->VSSetShader( m_SkyVertexShader, 0, 0 );
+	m_immediateContext->PSSetShader( m_SkyPixelShader, 0, 0 );
+	m_immediateContext->IASetInputLayout( m_SkyInputLayout );
+	m_immediateContext->OMSetDepthStencilState( m_DSState, 0 );
+
+	m_sky->Render( m_immediateContext );
+	m_immediateContext->DrawIndexed( m_sky->GetIndexCount( ), 0, 0 );
+	m_immediateContext->OMSetDepthStencilState( 0, 0 );
 }
 
 CubeMapping::~CubeMapping( )
@@ -160,10 +225,19 @@ CubeMapping::~CubeMapping( )
 	SafeRelease( m_pixelShader );
 	SafeRelease( m_inputLayout );
 	SafeRelease( m_perObjectBuffer );
+	SafeRelease( m_SkyVertexShader );
+	SafeRelease( m_SkyPixelShader );
+	SafeRelease( m_SkyInputLayout );
 	if ( m_model )
 	{
 		m_model->Shutdown( );
 		delete m_model;
 		m_model = 0;
+	}
+	if ( m_sky )
+	{
+		m_sky->Shutdown( );
+		delete m_sky;
+		m_sky = 0;
 	}
 }
