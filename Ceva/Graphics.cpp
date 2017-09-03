@@ -138,7 +138,7 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_CalculateLength = new CalculateLength(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
 	m_CalculateLength->SetData(&Data[0], size);
 	m_WorldInstancing = new WorldInstancing( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
-	m_CubeMapping = new CubeMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	m_CubeMapping = new CubeMapping( m_TextureShader, m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 
 	FirstTexture = new CTexture();
 	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))

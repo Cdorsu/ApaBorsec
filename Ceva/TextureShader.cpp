@@ -121,23 +121,29 @@ void CTextureShader::Render( ID3D11DeviceContext * context, UINT IndexDrawAmount
 	( ( SConstantBuffer* ) MappedResource.pData )->ClipPlane = clipPlane;
 	context->Unmap( ConstantBuffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &ConstantBuffer );
-	hr = context->Map( LightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
-	if ( FAILED( hr ) )
-		return;
-	( ( SLight* ) MappedResource.pData )->Dir = light->GetDirection( );
-	( ( SLight* ) MappedResource.pData )->Ambient = light->GetAmbientColor( );
-	( ( SLight* ) MappedResource.pData )->Diffuse = light->GetDiffuseColor( );
-	context->Unmap( LightBuffer, 0 );
-	context->PSSetConstantBuffers( 0, 1, &LightBuffer );
-	hr = context->Map( PointLightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
-	if ( FAILED( hr ) )
-		return;
-	( ( SPointLight* ) MappedResource.pData )->Attenuation = Pointlight->GetAttenuation( );
-	( ( SPointLight* ) MappedResource.pData )->Diffuse = Pointlight->GetDiffuseColor( );
-	( ( SPointLight* ) MappedResource.pData )->Position = Pointlight->GetPosition( );
-	( ( SPointLight* ) MappedResource.pData )->Range = Pointlight->GetRange( );
-	context->Unmap( PointLightBuffer, 0 );
-	context->PSSetConstantBuffers( 1, 1, &PointLightBuffer );
+	if ( light )
+	{
+		hr = context->Map( LightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+		if ( FAILED( hr ) )
+			return;
+		( ( SLight* ) MappedResource.pData )->Dir = light->GetDirection( );
+		( ( SLight* ) MappedResource.pData )->Ambient = light->GetAmbientColor( );
+		( ( SLight* ) MappedResource.pData )->Diffuse = light->GetDiffuseColor( );
+		context->Unmap( LightBuffer, 0 );
+		context->PSSetConstantBuffers( 0, 1, &LightBuffer );
+	}
+	if ( Pointlight )
+	{
+		hr = context->Map( PointLightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+		if ( FAILED( hr ) )
+			return;
+		( ( SPointLight* ) MappedResource.pData )->Attenuation = Pointlight->GetAttenuation( );
+		( ( SPointLight* ) MappedResource.pData )->Diffuse = Pointlight->GetDiffuseColor( );
+		( ( SPointLight* ) MappedResource.pData )->Position = Pointlight->GetPosition( );
+		( ( SPointLight* ) MappedResource.pData )->Range = Pointlight->GetRange( );
+		context->Unmap( PointLightBuffer, 0 );
+		context->PSSetConstantBuffers( 1, 1, &PointLightBuffer );
+	}
 	context->PSSetSamplers( 0, 1, &Sampler );
 	context->PSSetShaderResources( 0, 1, &Texture );
 	context->DrawIndexed( IndexDrawAmount, 0, 0 );

@@ -18,6 +18,7 @@ cbuffer perFrame : register(b0)
 
 float4 main(PSIn input) : SV_TARGET
 {
+    input.Normal = normalize( input.Normal );
 	float3 incident = input.PositionW.xyz - eyePos;
     incident = normalize( incident );
 	float3 reflection = reflect(incident, input.Normal);
