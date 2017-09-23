@@ -138,7 +138,8 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_CalculateLength = new CalculateLength(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
 	m_CalculateLength->SetData(&Data[0], size);
 	m_WorldInstancing = new WorldInstancing( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
-	m_CubeMapping = new CubeMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	//m_CubeMapping = new CubeMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	m_DisplacementMapping = new DisplacementMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 
 	FirstTexture = new CTexture();
 	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
@@ -149,9 +150,9 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
-	Light->SetAmbientColor( common::Color( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	Light->SetAmbientColor( common::Color( 0.3f, 0.3f, 0.3f, 1.0f ) );
 	Light->SetDiffuseColor( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	Light->SetDirection( DirectX::XMFLOAT3( 1.0f, -1.0f, 1.0f ) );
+	Light->SetDirection( DirectX::XMFLOAT3( 0.0f, -1.0f, 0.2f ) );
 	Light->SetSpecularPower( 32.0f );
 
 	PointLight = new CPointLight( );
@@ -268,7 +269,11 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
 
-	m_CubeMapping->Render( m_Camera->GetCameraPosition( ), m_Camera->GetView( ), m_Camera->GetProjection( ) );
+	//m_d3d->EnableWireframe( );
+
+	m_DisplacementMapping->Render( m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ), Light );
+
+	m_d3d->DisableCulling( );
 
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
@@ -317,6 +322,9 @@ void CGraphics::Shutdown()
 	SecondTexture->Shutdown();
 
 	delete m_WorldInstancing;
+
+	delete m_CubeMapping;
+	delete m_DisplacementMapping;
 
 	delete m_CalculateLength;
 	

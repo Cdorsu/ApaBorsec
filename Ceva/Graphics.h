@@ -37,6 +37,7 @@
 #include "CalculateLength.h"
 #include "WorldInstancing.h"
 #include "CubeMapping.h"
+#include "DisplacementMapping.h"
 
 
 class CGraphics sealed
@@ -95,6 +96,7 @@ private:
 	CalculateLength *m_CalculateLength;
 	WorldInstancing *m_WorldInstancing;
 	CubeMapping *m_CubeMapping;
+	DisplacementMapping *m_DisplacementMapping;
 
 	CTexture * FirstTexture;
 	CTexture * SecondTexture;
