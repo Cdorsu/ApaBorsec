@@ -8,7 +8,7 @@ CVertexAdditionShader::CVertexAdditionShader()
 
 bool CVertexAdditionShader::Initialize(ID3D11Device * device)
 {
-	ID3D10Blob *ShaderBlob, *ErrorBlob;
+	ID3D10Blob *ShaderBlob;
 	HRESULT hr;
 	/*hr = D3DX11CompileFromFile(L"CalculatorComputeShader.hlsl", NULL, NULL, "main", "cs_5_0", NULL, NULL, NULL, &ShaderBlob, &ErrorBlob, NULL);
 	if (FAILED(hr))
