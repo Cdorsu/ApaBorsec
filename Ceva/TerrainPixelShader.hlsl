@@ -38,7 +38,7 @@ float4 main(PSIn input) : SV_TARGET
 
     float3 tangent = normalize(float3(1.0f, rightY - leftY, 0.0f));
     float3 binormal = normalize(float3(0.0f, bottomY - topY, -1.0f));
-    float3 normal = cross(tangent, binormal);
+    float3 normal = normalize(cross(tangent, binormal));
 
     float4 Green = float4(0.0f, 1.0f, 0.0f, 1.0f);
     float4 Color = float4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -50,4 +50,5 @@ float4 main(PSIn input) : SV_TARGET
     }
     Color *= Green;
     return Color;
+
 }

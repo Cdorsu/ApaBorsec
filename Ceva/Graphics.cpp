@@ -152,9 +152,9 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 
 	Light = new CLight();
 	Light->SetSpecularColor( common::HexToRGB( 0xFFFFFF ) );
-	Light->SetAmbientColor( common::Color( 0.3f, 0.3f, 0.3f, 1.0f ) );
+	Light->SetAmbientColor( common::Color( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	Light->SetDiffuseColor( common::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	Light->SetDirection( DirectX::XMFLOAT3( 0.0f, -1.0f, 0.2f ) );
+	Light->SetDirection( DirectX::XMFLOAT3( 1.0f, 0.0f, 0.0f ) );
 	Light->SetSpecularPower( 32.0f );
 
 	PointLight = new CPointLight( );

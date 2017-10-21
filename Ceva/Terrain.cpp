@@ -182,8 +182,8 @@ bool Terrain::InitHeightmap( LPWSTR lpPath )
 		}
 	}
 
-	mCellTexSpacingU = 1.0f / 4;
-	mCellTexSpacingV = 1.0f / 4;
+	mCellTexSpacingU = 1.0f / mNumCol;
+	mCellTexSpacingV = 1.0f / mNumRow;
 
 	return true;
 }
