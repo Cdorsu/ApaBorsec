@@ -103,8 +103,11 @@ void CGlow::Shutdown( )
 	m_ToGlow->Shutdown( );
 	delete m_Texture;
 
-	m_Texture->Shutdown( );
-	delete m_Texture;
+	if ( m_Texture )
+	{
+		m_Texture->Shutdown( );
+		delete m_Texture;
+	}
 
 	m_Glowmap->Shutdown( );
 	delete m_Glowmap;

@@ -92,7 +92,6 @@ void BitmapClass::RenderBuffers( ID3D11DeviceContext * context )
 
 void BitmapClass::Shutdown()
 {
-	Texture->Shutdown();
 	delete Texture;
 	SafeRelease( VertexBuffer );
 	SafeRelease( IndexBuffer );

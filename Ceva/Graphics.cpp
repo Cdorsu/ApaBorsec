@@ -9,6 +9,7 @@ CGraphics::CGraphics()
 
 bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UINT WindowHeight)
 {
+	INPUT_INSTANCE->AddSpecialKey( DIK_B );
 	m_WindowWidth = WindowWidth;
 	m_WindowHeight = WindowHeight;
 	m_d3d = new D3DClass();
@@ -126,20 +127,21 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	m_Button = new BitmapClass();
 	if (!m_Button->Initialize(m_d3d->GetDevice(), L"", WindowWidth, WindowHeight, ButtonWidth, ButtonHeight))
 		return false;
-	m_GlowTest = new CGlow();
-	if (!m_GlowTest->Initialize(m_d3d->GetDevice(), L"data\\test.dds", L"data\\glowmap.dds",
-		m_HorizontalBlur, m_VerticalBlur, m_2DShader, m_MaskShader, m_CombineTextureShader,
-		m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar))
-		return false;
+	//m_GlowTest = new CGlow();
+	//if (!m_GlowTest->Initialize(m_d3d->GetDevice(), L"data\\test.dds", L"data\\glowmap.dds",
+	//	m_HorizontalBlur, m_VerticalBlur, m_2DShader, m_MaskShader, m_CombineTextureShader,
+	//	m_WindowWidth, m_WindowHeight, ButtonWidth, ButtonHeight, FOV, camNear, camFar))
+	//	return false;
 	std::vector<CalculateLength::SData> Data;
 	int size;
 	for (size = 0; size < 69; ++size)
 		Data.emplace_back(69.f);
-	m_CalculateLength = new CalculateLength(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
-	m_CalculateLength->SetData(&Data[0], size);
-	m_WorldInstancing = new WorldInstancing( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	//m_CalculateLength = new CalculateLength(m_d3d->GetDevice(), m_d3d->GetImmediateContext());
+	//m_CalculateLength->SetData(&Data[0], size);
+	//m_WorldInstancing = new WorldInstancing( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 	//m_CubeMapping = new CubeMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
-	m_DisplacementMapping = new DisplacementMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	//m_DisplacementMapping = new DisplacementMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	m_Terrain = new Terrain( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 
 	FirstTexture = new CTexture();
 	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
@@ -224,6 +226,7 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
 	sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
+	m_Terrain->Update( fFrameTime );
 
 #if defined USE_5_0_SHADERS
 	if (INPUT_INSTANCE->isKeyPressed(DIK_H))
@@ -268,13 +271,18 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 	m_d3d->EnableBackBuffer( );
 	m_d3d->ResetViewPort( );
 	m_d3d->BeginScene( );
+	static bool bWireframe = false;
 
-	//m_d3d->EnableWireframe( );
+	if ( INPUT_INSTANCE->isSpecialKeyPressed( DIK_B ) )
+		bWireframe = bWireframe ? false : true;
 
-	m_DisplacementMapping->Render( m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ), Light );
+	if ( bWireframe )
+		m_d3d->EnableWireframe( );
+
+	//m_DisplacementMapping->Render( m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ), Light );
+	m_Terrain->Render( m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ), Light );
 
 	m_d3d->DisableCulling( );
-
 #pragma region Draw UI
 	//m_d3d->EnableAlphaBlending( );
 
@@ -307,6 +315,8 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 
 void CGraphics::Shutdown()
 {
+	delete m_Terrain;
+
 	FontClass::Shutdown();
 
 	SafeRelease(Input1);
@@ -328,8 +338,11 @@ void CGraphics::Shutdown()
 
 	delete m_CalculateLength;
 	
-	m_VertexAddtiionShader->Shutdown();
-	delete m_VertexAddtiionShader;
+	if ( m_VertexAddtiionShader )
+	{
+		m_VertexAddtiionShader->Shutdown( );
+		delete m_VertexAddtiionShader;
+	}
 	
 	m_ExplosionShader->Shutdown();
 	delete m_ExplosionShader;
@@ -337,8 +350,8 @@ void CGraphics::Shutdown()
 	m_Cheat->Shutdown();
 	delete m_Cheat;
 
-	m_GlowTest->Shutdown( );
-	delete m_GlowTest;
+	//m_GlowTest->Shutdown( );
+	//delete m_GlowTest;
 
 	m_FrameTimeMessage->Shutdown();
 	delete m_FrameTimeMessage;
@@ -403,8 +416,11 @@ void CGraphics::Shutdown()
 	m_ExponentialFogShader2->Shutdown();
 	delete m_ExponentialFogShader2;
 
-	m_ComputeShader->Shutdown();
-	delete m_ComputeShader;
+	if ( m_ComputeShader )
+	{
+		m_ComputeShader->Shutdown( );
+		delete m_ComputeShader;
+	}
 
 	m_MaskShader->Shutdown( );
 	delete m_MaskShader;
@@ -418,17 +434,16 @@ void CGraphics::Shutdown()
 	m_Camera->Shutdown();
 	delete m_Camera;
 	
-	m_Cursor->Shutdown();
-	delete m_Cursor;
+	if ( m_Cursor )
+	{
+		delete m_Cursor;
+	}
 
 	m_DebugWindow->Shutdown( );
 	delete m_DebugWindow;
 
 	m_DebugWindowTexture->Shutdown( );
 	delete m_DebugWindowTexture;
-
-	m_InstanceShader->Shutdown( );
-	delete m_InstanceShader;
 
 	m_ProjectionShader->Shutdown( );
 	delete m_InstanceShader;

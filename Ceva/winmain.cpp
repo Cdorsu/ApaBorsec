@@ -6,7 +6,6 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	if (!Game->Initialize( hInstance ))
 		return 1;
 	Game->Run();
-	Game->Shutdown();
 	delete Game;
 
 	return 0;

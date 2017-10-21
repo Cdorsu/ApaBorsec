@@ -132,6 +132,7 @@ void CGame::Run()
 
 void CGame::Shutdown()
 {
+	delete m_Graphics;
 	CInput::Destroy();
 	UnregisterClass( L"Game", m_hInstance );
 	DestroyWindow( m_hWnd );

@@ -38,6 +38,7 @@
 #include "WorldInstancing.h"
 #include "CubeMapping.h"
 #include "DisplacementMapping.h"
+#include "Terrain.h"
 
 
 class CGraphics sealed
@@ -46,7 +47,7 @@ class CGraphics sealed
 	static constexpr UINT Height = 1024;
 	static constexpr UINT Elements = 64;
 	static constexpr float camNear = 0.1f;
-	static constexpr float camFar = 100.0f;
+	static constexpr float camFar = 10000.0f;
 	static constexpr float FOV = 0.5f * FLOAT_PI;
 	static constexpr float LightFOV = 0.3f * FLOAT_PI;
 	static constexpr float SHADOW_WIDTH = 1024;
@@ -97,6 +98,7 @@ private:
 	WorldInstancing *m_WorldInstancing;
 	CubeMapping *m_CubeMapping;
 	DisplacementMapping *m_DisplacementMapping;
+	Terrain *m_Terrain;
 
 	CTexture * FirstTexture;
 	CTexture * SecondTexture;
