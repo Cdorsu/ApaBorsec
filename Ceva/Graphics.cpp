@@ -141,7 +141,18 @@ bool CGraphics::Initialize(HINSTANCE hInstance, HWND hWnd, UINT WindowWidth, UIN
 	//m_WorldInstancing = new WorldInstancing( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 	//m_CubeMapping = new CubeMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
 	//m_DisplacementMapping = new DisplacementMapping( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
-	m_Terrain = new Terrain( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	//m_Terrain = new Terrain( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ) );
+	BezierCurve::SControlPoints cp;
+	cp.Number = 8;
+	cp.ControlPoints[ 0 ] = DirectX::XMFLOAT4( 0.0f, 0.0f, 3.0f, 1.0f );
+	cp.ControlPoints[ 1 ] = DirectX::XMFLOAT4( 2.0f, 10.0f, 0.0f, 1.0f );
+	cp.ControlPoints[ 2 ] = DirectX::XMFLOAT4( 4.0f, -10.0f, -5.0f, 1.0f );
+	cp.ControlPoints[ 3 ] = DirectX::XMFLOAT4( 6.0f, 10.0f, 0.0f, 1.0f );
+	cp.ControlPoints[ 4 ] = DirectX::XMFLOAT4( 15.0f, 0, 0.0f, 1.0f );
+	cp.ControlPoints[ 5 ] = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
+	cp.ControlPoints[ 6 ] = DirectX::XMFLOAT4( -3.0f, 0.0f, 1.0f, 1.0f );
+	cp.ControlPoints[ 7 ] = DirectX::XMFLOAT4( 0.0f, 0.0f, 3.0f, 1.0f );
+	m_BezierCurve = new BezierCurve( m_d3d->GetDevice( ), m_d3d->GetImmediateContext( ), cp );
 
 	FirstTexture = new CTexture();
 	if (!FirstTexture->Initialize(m_d3d->GetDevice(), L"data\\Chrissy.jpg"))
@@ -226,7 +237,6 @@ void CGraphics::Update( bool RenderMenu, DWORD dwFramesPerSecond, float fFrameTi
 	m_FPSMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 1.0f );
 	sprintf_s( buffer, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeMessage->Update( m_d3d->GetImmediateContext( ), buffer, strlen( buffer ), 1.0f, 18.0f );
-	m_Terrain->Update( fFrameTime );
 
 #if defined USE_5_0_SHADERS
 	if (INPUT_INSTANCE->isKeyPressed(DIK_H))
@@ -280,7 +290,8 @@ void CGraphics::Render( bool RenderMenu, char * Cheat, UINT MouseX, UINT MouseY 
 		m_d3d->EnableWireframe( );
 
 	//m_DisplacementMapping->Render( m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ), Light );
-	m_Terrain->Render( m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ), Light );
+	//m_Terrain->Render( m_Camera->GetView( ), m_Camera->GetProjection( ), m_Camera->GetCameraPosition( ), Light );
+	m_BezierCurve->Render( m_Camera->GetView( ), m_Camera->GetProjection( ) );
 
 	m_d3d->DisableCulling( );
 #pragma region Draw UI

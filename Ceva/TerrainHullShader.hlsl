@@ -32,7 +32,7 @@ static const float MaxTessDistance = 1000.0f;
 static const float MinTess = 0.0f;
 static const float MaxTess = 6.0f;
 
-int CalculateTesselation(float3 p)
+float CalculateTesselation(float3 p)
 {
     float dist = distance(p, gEyePos);
     float s = saturate((dist - MinTessDistance) / (MaxTessDistance - MinTessDistance));

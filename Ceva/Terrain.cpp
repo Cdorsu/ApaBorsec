@@ -396,6 +396,7 @@ void Terrain::Render( DirectX::FXMMATRIX & View, DirectX::FXMMATRIX & Projection
 
 	mContext->VSSetSamplers( 0, 1, &mWrapSampler );
 	mContext->DSSetSamplers( 0, 1, &mWrapSampler );
+	mContext->PSSetSamplers( 0, 1, &mWrapSampler );
 
 	WVP = View * Projection;
 	mContext->Map( mPerObjectBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource );

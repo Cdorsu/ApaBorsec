@@ -39,6 +39,7 @@
 #include "CubeMapping.h"
 #include "DisplacementMapping.h"
 #include "Terrain.h"
+#include "BezierCurve.h"
 
 
 class CGraphics sealed
@@ -99,6 +100,7 @@ private:
 	CubeMapping *m_CubeMapping;
 	DisplacementMapping *m_DisplacementMapping;
 	Terrain *m_Terrain;
+	BezierCurve * m_BezierCurve;
 
 	CTexture * FirstTexture;
 	CTexture * SecondTexture;
