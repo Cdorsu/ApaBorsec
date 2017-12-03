@@ -37,8 +37,8 @@ float Factorial(int numar)
     //return 263130836933693530167218012160000000.0f;
 	
     float Produs = 1;
-	//[unroll(32)]
-    for (uint i = 2; i < numar && i < 32; ++i)
+	[unroll(32)]
+    for (int i = 2; i <  numar; ++i)
         Produs *= i;
     return Produs;
 }
@@ -87,8 +87,8 @@ DS_OUTPUT main(
     float x = 0.0f;
     float y = 0.0f;
     float z = 0.0f;
-    //[unroll(64)]
-    for (uint i = 0; i < NumControlPoints && i < 100; ++i)
+    [unroll(64)]
+    for (uint i = 0; i < NumControlPoints; ++i)
     {
         float Basis = Bernstein(NumControlPoints - 1, i, domain);
         x += Basis * ControlPoints[i].x;
